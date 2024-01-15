@@ -1,0 +1,73 @@
+---
+import Layout from '@/layouts/Layout.astro'
+import { getCollection, getEntries } from 'astro:content'
+import type { GetStaticPathsOptions } from 'astro'
+import { getRelativeLocaleUrl } from 'astro:i18n'
+import { getImage } from 'astro:assets'
+import homeImage from '@/assets/home.webp'
+
+const optimizedBackground = await getImage({ src: homeImage, format: 'webp' })
+
+export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
+  const langs = ['ja', 'en']
+  const allPosts = await getCollection('posts')
+  return langs.flatMap((lang) => {
+    const filteredPosts = allPosts.filter((post) => post.slug.startsWith(lang))
+    return paginate(filteredPosts, {
+      params: { lang },
+      pageSize: 9,
+    })
+  })
+}
+
+const { page } = Astro.props
+const { lang } = Astro.params
+
+// Get all categories with posts in current locale
+const categories = await getCollection('posts', ({ slug }) => {
+  return slug.startsWith(lang)
+}).then(async (posts) => [
+  ...new Set(
+    await Promise.all(posts.map(async (post) => await getEntries(post.data.categories))).then((categories) =>
+      categories.flat(),
+    ),
+  ),
+])
+---
+
+<Layout title="TO_SET" image="" description="TO_SET" availableLocales={['ja', 'en']} lang={lang as 'ja' | 'en'}>
+  <main>
+    <div class="relative">
+      <div
+        style={`background-image: url(${optimizedBackground.src});`}
+        class="min-h-[500px] w-full bg-cover bg-center after:absolute after:size-full after:bg-black/40"
+      >
+      </div>
+    </div>
+    <div class="container max-w-5xl">
+      <ul class="flex gap-4">
+        {
+          categories.map((category) => (
+            <>
+              <li class="bg-ml-yellow rounded border-gray-400 px-5 py-2.5">
+                <a href={getRelativeLocaleUrl(lang, '/')}>All</a>
+              </li>
+              <li class="bg-ml-yellow rounded border-gray-400 px-5 py-2.5">
+                <a href={getRelativeLocaleUrl(lang, `/categories/${category.slug}`)}>{category.data.name}</a>
+              </li>
+            </>
+          ))
+        }
+      </ul>
+      <ul class="flex gap-4">
+        {
+          page.data.map((post) => (
+            <li>
+              <a href={getRelativeLocaleUrl(lang, `posts/${post.slug.split('/')[1]}`)}>{post.data.title}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </main>
+</Layout>

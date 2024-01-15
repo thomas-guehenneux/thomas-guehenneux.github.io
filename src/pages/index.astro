@@ -1,0 +1,29 @@
+---
+import Layout from '~/layouts/Layout.astro'
+// export function getStaticPaths() {
+//   return [
+//     {params: {lang: 'ja'}},
+//     {params: {lang: 'en'}},
+//   ];
+// }
+// const { lang } = Astro.params;
+---
+
+<script>
+  const languages = navigator.languages
+  if (languages.includes('ja')) {
+    location.href = '/ja'
+  } else {
+    location.href = '/en'
+  }
+</script>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Redirecting...</title>
+  </head>
+</html>

@@ -1,0 +1,63 @@
+---
+import Layout from '@/layouts/Layout.astro'
+import { getImage } from 'astro:assets'
+import { getCollection } from 'astro:content'
+
+const allPosts = await getCollection('posts')
+export async function getStaticPaths() {
+  const pages = await getCollection('posts')
+
+  const paths = pages.map((page) => {
+    const [lang, ...slug] = page.slug.split('/')
+    return { params: { lang, slug: slug.join('/') || undefined }, props: page }
+  })
+
+  return paths
+}
+
+const { lang } = Astro.params
+const page = Astro.props
+
+function getAvailableLocales() {
+  return allPosts.filter((post) => post.slug.slice(2) === page.slug.slice(2)).map((post) => post.slug.slice(0, 2)) as (
+    | 'ja'
+    | 'en'
+  )[]
+}
+const { Content } = await page.render()
+const optimizedBackground = await getImage({ src: page.data.image, format: 'webp', quality: 80, width: 1920 })
+console.log(optimizedBackground.src)
+---
+
+<Layout
+  title="TO_SET"
+  image={optimizedBackground.src}
+  description="TO_SET"
+  availableLocales={getAvailableLocales()}
+  lang={lang as 'ja' | 'en'}
+>
+  <div
+    style={`background-image: url(${optimizedBackground.src});`}
+    class="h-[500px] w-full bg-cover bg-center text-white"
+  >
+    <div class="flex size-full items-center justify-center bg-black/40">
+      <div class="max-w-[1176px] space-y-5 px-3 text-center">
+        <div class="text-4xl font-normal leading-snug md:text-5xl">{page.data.title}</div>
+        <div class="">
+          {
+            page.data.date.toLocaleDateString(lang, {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  <main class="container mx-auto px-3 py-12">
+    <section class="prose prose-blockquote:before:content-['“'] mx-auto">
+      <Content />
+    </section>
+  </main>
+</Layout>

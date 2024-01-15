@@ -1,0 +1,3 @@
+---
+name: "Solution Architecture"
+---

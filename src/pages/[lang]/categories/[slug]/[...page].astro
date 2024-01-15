@@ -1,0 +1,54 @@
+---
+import { getCollection } from 'astro:content'
+import type { GetStaticPathsOptions } from 'astro'
+import Layout from '@/layouts/Layout.astro'
+
+const allPosts = await getCollection('posts')
+export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
+  const langs = ['ja', 'en']
+  const allPosts = await getCollection('posts')
+  const categories = await getCollection('categories')
+  return langs.flatMap((lang) => {
+    return categories
+      .flatMap((category) => {
+        const filteredPosts = allPosts
+          .filter(
+            (post) =>
+              post.slug.startsWith(lang) &&
+              post.data.categories.some((postCategory) => postCategory.slug === category.slug),
+          )
+          .map((post) => {
+            return { post }
+          })
+
+        if (filteredPosts.length === 0) return undefined
+        return paginate(filteredPosts, {
+          params: { lang, slug: category.slug },
+          pageSize: 9,
+        })
+      })
+      .filter(Boolean)
+  })
+}
+
+const { page } = Astro.props
+const { lang, slug: category } = Astro.params
+
+function getAvailableLocales() {
+  return allPosts
+    .filter((post) => post.data.categories.some((postCategory) => postCategory.slug === category))
+    .flatMap((post) => post.slug.slice(0, 2)) as ('ja' | 'en')[]
+}
+---
+
+<Layout
+  title="TO_SET"
+  image=""
+  description="TO_SET"
+  availableLocales={getAvailableLocales()}
+  lang={lang as 'ja' | 'en'}
+>
+  <ul>
+    {page.data.map(({ post }) => <li>{post.slug}</li>)}
+  </ul>
+</Layout>
