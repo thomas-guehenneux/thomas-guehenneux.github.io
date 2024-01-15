@@ -2,14 +2,18 @@ import { defineConfig } from 'astro/config'
 import solidJs from '@astrojs/solid-js'
 import tailwind from '@astrojs/tailwind'
 import sitemap from '@astrojs/sitemap'
-import subfont from '@ernxst/subfont/astro'
+// import subfont from '@ernxst/subfont/astro'
+
+import vercelStatic from '@astrojs/vercel/static'
 
 // https://astro.build/config
 export default defineConfig({
   site: 'http://localhost:4321',
   integrations: [
     solidJs(),
-    tailwind({ applyBaseStyles: false }),
+    tailwind({
+      applyBaseStyles: false,
+    }),
     // subfont(),
     sitemap({
       i18n: {
@@ -28,4 +32,6 @@ export default defineConfig({
       prefixDefaultLocale: true,
     },
   },
+  output: 'static',
+  adapter: vercelStatic(),
 })
