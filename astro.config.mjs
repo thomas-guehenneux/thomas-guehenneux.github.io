@@ -4,8 +4,6 @@ import tailwind from '@astrojs/tailwind'
 import sitemap from '@astrojs/sitemap'
 import vercel from '@astrojs/vercel/serverless'
 
-export const prerender = false
-
 // https://astro.build/config
 export default defineConfig({
   site: 'http://localhost:4321',
