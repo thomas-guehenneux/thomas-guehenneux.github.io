@@ -39,7 +39,6 @@
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-solid": "^0.13.1",
     "eslint-plugin-tailwindcss": "3.14.0-beta.1",
-    "glyphhanger": "^5.0.0",
     "prettier": "^3.1.1",
     "prettier-config-standard": "^7.0.0",
     "prettier-plugin-astro": "^0.12.3",

@@ -2,9 +2,9 @@ import { defineConfig } from 'astro/config'
 import solidJs from '@astrojs/solid-js'
 import tailwind from '@astrojs/tailwind'
 import sitemap from '@astrojs/sitemap'
-// import subfont from '@ernxst/subfont/astro'
+import vercel from '@astrojs/vercel/serverless'
 
-import vercelStatic from '@astrojs/vercel/static'
+export const prerender = false
 
 // https://astro.build/config
 export default defineConfig({
@@ -32,6 +32,6 @@ export default defineConfig({
       prefixDefaultLocale: true,
     },
   },
-  output: 'static',
-  adapter: vercelStatic(),
+  output: 'hybrid',
+  adapter: vercel(),
 })
