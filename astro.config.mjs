@@ -1,8 +1,9 @@
-import { defineConfig } from 'astro/config'
+import mdx from '@astrojs/mdx'
+import sitemap from '@astrojs/sitemap'
 import solidJs from '@astrojs/solid-js'
 import tailwind from '@astrojs/tailwind'
-import sitemap from '@astrojs/sitemap'
-import vercel from '@astrojs/vercel/serverless'
+import { defineConfig } from 'astro/config'
+import remarkCaptions from 'remark-captions'
 
 // https://astro.build/config
 export default defineConfig({
@@ -12,7 +13,6 @@ export default defineConfig({
     tailwind({
       applyBaseStyles: false,
     }),
-    // subfont(),
     sitemap({
       i18n: {
         defaultLocale: 'en',
@@ -22,7 +22,12 @@ export default defineConfig({
         },
       },
     }),
+    mdx(),
   ],
+  markdown: {
+    remarkPlugins: [remarkCaptions],
+    extendDefaultPlugins: true,
+  },
   i18n: {
     defaultLocale: 'en',
     locales: ['en', 'ja'],
@@ -30,8 +35,6 @@ export default defineConfig({
       prefixDefaultLocale: true,
     },
   },
-  output: 'hybrid',
-  adapter: vercel({
-    edgeMiddleware: true,
-  }),
+  output: 'static',
+  // adapter: vercel(),
 })

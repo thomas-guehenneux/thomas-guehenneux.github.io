@@ -1,0 +1,328 @@
+---
+title: "First look at AndroidX Bluetooth" 
+tags: [android, bluetooth, androidx, library, kotlin] 
+image: "@/assets/posts/first-look-at-androidx-bluetooth/header.jpg"
+authorIds:
+  - eduard-ablekimov
+categories:
+  - android
+date: 2023-11-09
+--- 
+
+AndroidX Bluetooth is a new addition to the [Jetpack Suite](https://developer.android.com/jetpack) of libraries. While currently in its alpha stage, the system already provides robust safety measures addressing [common pitfalls](https://punchthrough.com/android-ble-development-tips/) in Android BLE development. Moreover, it establishes a clear trajectory for further improvements. Official Android Developer Documentation describes AndroidX Bluetooth as:
+
+> This is the initial release of AndroidX Bluetooth APIs that provides a Kotlin API surface covering Bluetooth LE scanning and advertising, and GATT client and server use cases. It provides a minimal API surface, clear thread model with async and sync operations, and ensures all methods be executed and provides the results.
+
+Sounds very promising, but less talk, more action, let's dive deeper into what AndroidX Bluetooth library brings to the table!
+
+## How to use AndroidX Bluetooth library
+
+First of all, import the artifact in your `build.gradle`.
+
+```groovy
+implementation "androidx.bluetooth:bluetooth:1.0.0-alpha01"
+```
+
+*Note: current minSdk of the artifact might be too high (33 at the point of writing this article) and it is intended. They are gradually lowering the minSdk as part of integration testing/for people to not use it in production since it is still in alpha.*
+
+## Working with the library
+
+With the basic introductions done, it is time to buckle up and start coding! For the sake of simplifying the article we will skip the permission handling, checking whether device has bluetooth and if it is enabled and move straight to the specifics of the AndroidX Bluetooth library.
+
+### `BluetoothLe` class
+
+`BluetoothLe` class is the main entry point of the library. Internally, it contains `GattClient` and `GattServer` classes which are responsible for the GATT client and GATT server role, respectively. Every usecase you have will go through this class.
+
+Currently `BluetoothLe` class has 4 main methods:
+ - `scan` - launches peripheral scanner
+ - `connectGatt` - handles the connection to the peripheral
+ - `advertise` - starts BLE advertiser
+ - `openGattServer` - starts GATT server
+
+To instantiate `BluetoothLe` class, simply call its constructor where you have to supply it with `Context`.
+
+## GATT Client/Central
+
+Now that we have our `BluetoothLe` class set up, let's dive deeper into GATT client/central role and its main responsibilities. That includes scanning for peripherals, connecting and communicating with them via read/write operations.
+
+### Scanning
+
+Let's start with the first operation we have to do when doing any business with the bluetooth devices - the scan.
+
+To launch a scan, simply call the `bluetoothLe.scan(List<ScanFilter>)` method. It has one parameter, which is a list of scan filters and it returns a `Flow` of `ScanResult`s, which is very convenient! No more callback hells, instead we have a **cold** flow that emits devices once they are detected by the hardware scanner (and passes your scan filters).
+
+You can notice that there is no way to set  `ScanSettings` for the scan since it doesn't exist as a parameter for the function. `ScanSettings` allows developers to set the scan mode, match mode, PHY, etc. Since under the hood it still uses framework's `bluetoothLeScanner`, it is still mandatory to specify, but for now it is not implemented in AndroidX library and it uses default `ScanSettings` instead:
+
+```kotlin
+val scanSettings = ScanSettings.Builder().build()  
+bleScanner?.startScan(fwkFilters, scanSettings, callback)
+```
+
+There is also no method to stop the scan, but by checking the code inside the library we can see the following code:
+
+```kotlin
+fun scan(filters: List<ScanFilter> = emptyList()): Flow<ScanResult> = callbackFlow {
+
+  // scan method body
+  
+  awaitClose {  
+    bleScanner?.stopScan(callback)  
+  }  
+}
+```
+
+Notice the `awaitClose`? It suspends the function/coroutine until it is either closed or cancelled and invokes the code block. Therefore in order to stop the scan we would need to cancel the `Job` that collects the scan results. A draft of the code would look like this:
+
+```kotlin
+private var scanJob: Job? = null
+
+fun startScanning() {  
+  scanJob = viewModelScope.launch {
+    try {
+      bluetoothLe.scan().collect { scanResult ->
+        // do something with the scan results
+      } 
+    } catch (exception: Exception) {
+      // handle scan errors
+    }
+  }
+}  
+  
+fun stopScanning() {  
+  scanJob?.cancel()  
+  scanJob = null  
+}
+```
+
+Looks quite tidy and clean! Now you can take your device from the scan results and connect to it. 
+
+### Connecting
+
+To connect to the peripheral, one should make use of the `connectGatt` method. 
+
+```kotlin
+bluetoothLe.connectGatt(BluetoothDevice, suspend GattClientScope.() -> R)`
+```
+
+There are two parameters for developers to fiddle with:
+
+ - `BluetoothDevice` - library's wrapper around framework's `BluetoothDevice`. You can receive it from the `ScanResult` when scanning for peripherals (more details in the scanning section above)
+ - `suspend GattClientScope.() -> R` - lambda which is marked as suspend. It invokes once the connection with the peripheral is established. Since it is also an extension of `GattClientScope` you can call various methods on it to communicate with the remote device.
+
+Therefore, to connect to the peripheral, you'd need to have something like the following:
+
+```kotlin
+// every communication is going through this object once the device is connected  
+private var gattClient: BluetoothLe.GattClientScope? = null
+
+try {
+  bluetoothLe.connectGatt(bluetoothDevice) {  
+    gattClient = this
+  }
+} catch (exception: Exception) {
+  // handle connection errors
+}
+```
+
+Since lambda is an extension of `GattClientScope`, we can save it to the outside variable, similar to how you'd save `BluetoothGatt` object when working with the framework's BLE SDK.
+
+One thing to keep in mind is that **the connection will be dropped the moment** `suspend GattClientScope.() -> R` **lambda finishes**. To negate that, you need to **suspend** the lambda at the end by calling `awaitCancellation()`. That will also allow you to control when to disconnect from the device, similarly to how we stopped the scan earlier. Therefore, the connectivity block might look like this:
+
+```kotlin
+// every communication is going through this object once the device is connected  
+private var gattClient: BluetoothLe.GattClientScope? = null
+private var connectJob: Job? = null
+
+fun connect() {
+  connectJob = coroutineScope.launch {
+    try {
+      bluetoothLe.connectGatt(bluetoothDevice) {  
+        gattClient = this
+        awaitCancellation()
+      }
+    } catch (exception: Exception) {
+      // handle connection errors
+    }
+  }
+}
+
+fun disconnect() {
+  connectJob?.cancel()  
+  connectJob = null  
+}
+```
+
+After it establishes the connection, the library automatically does the initial flow of setting up the GATT. The flow looks like this: *connection success >> request MTU >> 515 >> discover services >> we're ready!* The only flaw in this is that if the MTU request fails, then the whole connection is dropped. Granted that the MTU request is not a mandatory operation, that seems quite extreme (at least I wasn't been able to connect to my virtual peripheral, because it was failing the MTU request and had to find another way to host a GATT server)
+
+Other than that, the whole connectivity process was smooth and I was able to have a working connectable device in no time.
+
+### Communicating
+
+Once the connection is established, it is time to do some communication, i.e. read/write. Previously we saved `GattClientScope` to an outer variable. This class has a minimum amount of capabilities to start communicating with the remote device. For example, you can check all the characteristics of a certain service by calling the following method:
+
+```kotlin
+gattClient.services.first().characteristics
+```
+
+Or when you need to read from characteristic or write to it, you can do it all by using the same `GattClientScope`:
+
+```kotlin
+// Find the characteristic
+// Please note, that this is just an example, you would need to find characteristic
+// by its' UUID
+val myCharacteristic = gattClient.services.first().characteristics.first()
+
+// read characteristic; this is a suspend function
+val result = gattClient.readCharacteristic(myCharacteristic)
+
+// write characteristic; this is a suspend function
+gattClient.writeCharacteristic(characteristic, valueToWrite.toByteArray())
+```
+
+Besides those standard operations, `GattClientScope` also able to subscribe to characteristic and return flow of values:
+```kotlin
+// not a suspend function; returns Flow instead
+val byteArrayFlow = gattClient.subscribeToCharacteristic(myCharacteristic)
+coroutineScope.launch {
+  byteArrayFlow.collect { byteArray ->
+    // process byte arrays coming from peripheral's notifications 
+  }
+}
+```
+
+### Operation queuing
+
+Developers who worked with Android BLE SDK know that it is forbidden to perform operations in rapid-fire succession. Essentially, if you are not using some third-party library, you would need to implement a queuing mechanism that would execute your BLE operations sequentially, one-by-one (any operation, such as discover services, request MTU, read/write, etc). If you don't do that, chances are that some of the operations will be simply dropped/ignored causing software misbehavior.
+
+In AndroidX Bluetooth that seems to be finally taken care of and developers can finally not worry about creating a queuing mechanism for their operations. That is due to the fact that internally the library uses Kotlin's `Mutex`.  [Mutex](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.sync/-mutex/) essentially suspends the function until the shared resource is free. But the important part there is that the created mutex is fair: lock is granted in first come, first served order. In another words, Mutex allows us to create a queue for BLE operations. The code snippet below was taken from the AndroidX Bluetooth source code, modified for article's simplicity and enriched with some comments explaining how it works.
+
+```kotlin
+val gattScope = object : BluetoothLe.GattClientScope {
+
+  // create Mutex
+  val taskMutex = Mutex()
+  
+  // helper function to make use of Mutex
+  // will be used down below in readCharacteristic function
+  suspend fun <R> runTask(block: suspend () -> R): R {  
+    taskMutex.withLock {  
+      return block()  
+    }  
+  }  
+  
+  override suspend fun readCharacteristic(characteristic: GattCharacteristic): Result<ByteArray> {  
+    // the runTask function locks the mutex  
+    return runTask {
+      // read the characteristic safely, inside the mutex
+      fwkAdapter.readCharacteristic(characteristic.fwkCharacteristic)  
+      // the function below suspends until we get the result from the read operation 
+      val res = takeMatchingResult<GattClient.CallbackResult.OnCharacteristicRead>(  
+        callbackResultsFlow  
+      ) {  
+        it.characteristic == characteristic  
+      }  
+  
+      // return the result, unlock the mutex
+    }  
+  }  
+}
+```
+
+Mutex is used in read, write and subscribe operations, which means that if you somehow rapid-fire read operations along with discover services, request MTU or some other, then you still can theoretically lose some requests, but we are going into an edge case now since AndroidX Bluetooth doesn't currently have the capability to enqueue discover services request through their API.
+
+## GATT Server/Peripheral
+
+Besides being the client most of the time, Android can also be a server! Since Android 5+ some of the devices can act as peripheral/server, but be aware that not all of the devices support that on the hardware level. You can find what phones support that in [that list](https://altbeacon.github.io/android-beacon-library/beacon-transmitter-devices.html).
+
+To open the GATT server, you would need to call `openGattServer` method.
+
+```kotlin
+bluetoothLe.openGattServer(List<GattService>, suspend GattServerConnectScope.() -> R)
+```
+
+There are multiple design similarities with the previously described operations. Let's dig deeper! There are two parameters, similarly to how client connection works:
+ - `List<GattService>` - services and characteristics that the server will hold.
+ - `suspend GattServerConnectScope.() -> R` - lambda which is marked as suspend. It executes once the server is opened. Again, similarly to how client connection works, it's also an extension of `GattServerConnectScope`.
+
+`GattServerConnectScope` doesn't have much to offer from the first glance. You can update services by invoking the corresponding method `updateServices(List<GattService>)` and listen to the connect requests by utilizing `connectRequests` Flow. The latter one is a little bit more interesting since you are collecting `GattServerConnectRequest`s. It contains the `BluetoothDevice` from which the request is coming from and methods to accept (has yet another lambda) or reject the request. If you accept the request, you are basically establishing the connection with the client and can start processing read/write requests, notify the client via BLE Notifications, etc.
+
+Therefore, to open the GATT server, you'd need to have something like the following:
+
+```kotlin
+bluetoothLe.openGattServer(gattServerServices) { // opens GATT server
+   connectRequests.collect { connectRequest ->   // collets clients' connection requests
+     connectRequest.accept {                     // accepts the connection request (you can also reject it)
+       requests.collect { serverRequest ->       // collects client's read/write requests, etc
+         // do something with server request
+       }
+     }
+   }
+}
+```
+
+You can further improve the snippet above by adding `CoroutineScope.launch` before opening GATT server like we did in the scanning/connectivity before, cancelling it whenever you need to close the server and/or adding parallelism by launching a separate coroutine for each `connectRequest`, etc. The sky is the limit!
+
+## Advertiser
+
+Lastly, you can also have a device advertiser. You can do it by calling the `advertise` method. 
+
+```kotlin
+bluetoothLe.advertise(AdvertiseParams, (suspend (@AdvertiseResult Int) -> Unit)?)
+```
+
+This method has two parameters:
+
+ - `AdvertiseParams` - provides a way to adjust advertising preferences and advertise data packet.
+ - `(suspend (@AdvertiseResult Int) -> Unit)?` - an optional block of code that is invoked when advertising is started or failed.
+
+`AdvertiseParams` has a lot of preferences to modify, let's go over them one-by-one:
+
+- `shouldIncludeDeviceAddress` - sets whether the device address will be included in the advertisement packet.
+- `shouldIncludeDeviceName` - sets whether the device name will be included in the advertisement packet.
+- `isConnectable` - sets whether the advertisement will indicate connectable.
+- `isDiscoverable` - sets whether the advertisement will be discoverable. Note that it would be ignored under API level 34 and `isConnectable` would be used instead.
+- `durationMillis` - sets advertising duration in milliseconds. Supports values from 0 to 655350.
+- `manufacturerData` - sets a map of company identifiers to manufacturer specific data.
+- `serviceData` - sets a map of 16-bit UUIDs of the services to corresponding additional service data.
+- `serviceUuids` - sets a list of service UUIDs to advertise.
+
+As you can see, there are a lot of preferences to fiddle with, but more importantly, under the hood, it has all the conditionals to ensure backwards compatibility so you don't need to have a hell of API-level version checks. It is all already done! And that applies to all of the operations we have gone through in this article such as scanning, connectivity, hosting a GATT server, etc!
+
+Lastly, this is how the code would look like if you need to advertise your device:
+
+```kotlin
+val advertiseParams = AdvertiseParams(  
+  shouldIncludeDeviceAddress = false,  
+  shouldIncludeDeviceName = false,  
+  isConnectable = false,  
+  isDiscoverable = false,  
+  durationMillis = 0,  
+  manufacturerData = mutableMapOf(),  
+  serviceData = mutableMapOf(),  
+  serviceUuids = mutableListOf(),  
+)
+bluetoothLe.advertise(advertiseParams) {
+  // do something with the AdvertiseResult
+}
+``` 
+
+## Room for Improvement
+
+There is definitely room for improvement for the library. Some of them include:
+
+- Consistency. Some methods of `BluetoothLe` suspend the function and you need to cancel it to interrupt the operation and other methods don't suspend the function and you have to add `awaitCancellation` yourself (looking at you `connectGatt` method 👀).
+- Make request MTU not mandatory when establishing the connection with the peripheral.
+- Allow developers to modify `ScanSettings` when scanning for peripherals, but I am sure it will come in future versions.
+
+## Conclusion
+
+To wrap it up, here are the key takeaways for the AndroidX Bluetooth library:
+
+ - AndroidX Bluetooth is a Jetpack library that adds synchronous way to handle bluetooth operations.
+ - AndroidX Bluetooth allows developers to scan, connect, communicate, create their own GATT servers and advertise their devices.
+ - AndroidX Bluetooth is heavily leveraging Kotlin Coroutines, which makes collecting results and/or cancelling operations relatively easy.
+ - AndroidX Bluetooth handles all API level version specifics for you. Less version checks conditionals = good.
+ - It is still in alpha and a lot of features are missing and there is room for improvement, but it is a very good start and makes third-party Android BLE libraries a bit less mandatory for the real world development
+
+
+_ Article Photo by [Sten Ritterfeld](https://unsplash.com/@stenslens) on [Unsplash](https://unsplash.com/photos/black-and-white-remote-control-psKil0FkS58)

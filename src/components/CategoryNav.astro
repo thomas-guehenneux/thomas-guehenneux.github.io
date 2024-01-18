@@ -1,0 +1,42 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import { getRelativeLocaleUrl } from 'astro:i18n'
+
+interface Props {
+  categories: CollectionEntry<'categories'>[]
+  lang: 'en' | 'ja'
+  class: string
+}
+const { lang, categories, class: className } = Astro.props
+---
+
+<nav class={className}>
+  <ul class="flex gap-4">
+    <li
+      class:list={[
+        'rounded-md border border-gray-300 px-5 py-2.5',
+        {
+          'bg-ml-yellow': getRelativeLocaleUrl(lang, '') === Astro.url.pathname,
+        },
+      ]}
+    >
+      <a href={getRelativeLocaleUrl(lang, '/')}>All</a>
+    </li>
+    {
+      categories.map((category) => (
+        <>
+          <li
+            class:list={[
+              'rounded-md border border-gray-300 px-5 py-2.5',
+              {
+                'bg-ml-yellow': getRelativeLocaleUrl(lang, `/categories/${category.slug}`) === Astro.url.pathname,
+              },
+            ]}
+          >
+            <a href={getRelativeLocaleUrl(lang, `/categories/${category.slug}`)}>{category.data.name}</a>
+          </li>
+        </>
+      ))
+    }
+  </ul>
+</nav>

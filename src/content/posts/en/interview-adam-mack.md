@@ -1,0 +1,55 @@
+---
+title: "Behind the screens: Interview with Adam Mack, Lead Product Manager at Monstarlab"
+tags: [interview]
+image: "@/assets/posts/interview-adam-mack/header.jpeg"
+authorIds:
+  - monstarlab
+categories:
+  - afk
+date: 2024-01-03
+---
+Welcome to our interview series!
+
+Today, we're chatting with Adam Mack. With over 15 years at the company, starting back at Fuzz Productions (a digital agency which was [acquired by Monstarlab in 2019](https://monstar-lab.com/global/ml-news/fuzz_join)), Adam is a Solution Architect or Technical Product Manager, depending on the day of the week!
+
+Living in Massachusetts, USA, Adam enjoys life with his partner Molly and their cat, Cray-cray. When he's not tackling tech problems, he's into pinball, making and playing video games, creating music, and cooking. Let's dive into his world!
+
+![Adam and Cesar](@/assets/posts/interview-adam-mack/adam_cesar.jpg)
+<figcaption>In the photo: Adam Mack and Cesar Aguilar</figcaption>
+
+_**Adam, could you share with us the story of how you entered the field of generative AI? What was the inspiration that led you to focus on this particular area in technology?**_
+
+I was fascinated by Google Deep Dream back in 2015, and the bizarre dreamlike images it could create. That’s when I first became aware of AI image generation as an academic field, and I’ve sort of kept watching the space since then. Fast forward to 2021, and the fairly quiet announcement of Dall-E 1 from OpenAI; I was showing every single person I know the landing page, saying things like “look! It can make an avocado chair out of nothing!!”. I was very excited about the possibilities, to say the least.
+
+_**For those who are new to the concept of generative AI, how would you explain it in simple terms?**_
+
+For friends and family who know nothing about computers, let alone neural networks, I usually refer (half joking) to the analogy of waiting for a million monkeys to accidentally write Shakespeare - what if we could train the monkeys over time to learn what words mean, and which words go next to each other more frequently than others? Even if they can’t fully read or write like you or I can, you’d start to see patterns emerge that resemble Shakespeare (or whatever input) more closely than the random noise you’d otherwise get. Now imagine you can give positive reinforcement to specific monkeys that do a great job of generating Shakespeare-like patterns; you’re part of the way toward visualizing a neural network at work.
+
+_**What do you think are some of the most exciting trends in the field of generative AI? How do these trends influence your work?**_
+
+The most exciting trend, hands down, is seeing how product teams everywhere are taking the “basic” building blocks of generative AI and layering them with the fundamental building blocks that make up their product, leading to new interaction patterns that would have been unimaginatively complex to engineer just a few years ago. Just opening up natural language as a viable user interface for software is a game changer - I think anyone frustrated with the limitations of last gen voice assistants knows how much unrealized promise there is in the ability for a user to naturally converse with a machine. Especially when it comes to the context of providing enhanced accessibility or representation to audiences that are either underserved or have accessibility challenges.
+
+_**Looking ahead, where do you see generative AI heading in the next 5 to 10 years? What kind of advancements or changes do you anticipate?**_
+
+I have so much hope for generative AI’s potential to give an artistic voice to those without the resources or ability to “compete” with commercial interests. Suddenly, if you have a dream for a movie or illustration, it’s no longer locked up in your brain if you lack the artistic ability or tools to realize it. I feel like that could be transformative for society in the same ways that the printing press was transformative, in giving a voice to those who previously lacked a voice, giving access to creating art to those who lacked access before. At the same time, especially as AI outputs become closer to commercially viable replacements for human labor, we’re going to see a huge backlash against these technologies and the use of these technologies in commercial applications. I don’t know who wins that battle for hearts and minds of consumers, but it’ll be interesting. In the meantime, I’m loving that I can create beautiful “oil paintings” with words.
+
+_**You seem to have a strong passion for image generation. Could you share with us an image you created using generative AI tools that particularly amazed you?**_
+
+Great timing! At time of writing, Midjourney 6 just came out. In my many hours experimenting, I’ve coaxed it to create some stunning images. I’ve included 4 of my favorites!
+
+![Midjourney Images](@/assets/posts/interview-adam-mack/mid_favs.png)
+
+
+_**How has your experience been working at Monstarlab? Could you share some highlights or key moments that have shaped your journey here?**_
+
+I’ve been here quite a long time in internet years, growing my career from being a very inexperienced graphic designer, to being a solution architect capable of leading international projects. In many ways, the big opportunities of my career have been largely due to chance, where I accidentally find myself in front of a new opportunity to do something important, and I need to adapt and succeed. So that has always been my takeaway, and my secret to success and longevity in my career growth here:
+
+> Always be ready to seize unusual and unexpected opportunities when they arise. It’ll never be what you expected.
+
+_**Reflecting on your early days, what is your earliest memory related to coding? Could you tell us about your first project and the experience of working on it?**_
+
+Growing up, before DOS and Windows machines, we had several Atari personal computers around the house, and one I remember most fondly was the 800. I was fascinated by early games like Time Bandit and Pitfall, and it led to me asking my father questions about how games work. That led us to doing little programming exercises together out of magazines, plugging them into BASIC and hoping they ran. I remember one time he led us in daisy chaining a bunch of hardware together for the intended outcome of capturing still images from a VHS and printing them in high contrast black and white on a dot matrix printer as “coloring book” images. Wizardry like that is what sparked my life long interest in software and hardware development.
+
+_**Is there a book, not necessarily related to programming, that has had a significant impact on your thinking or approach to your work?**_
+
+I always love an opportunity to plug this book - I read it in college, and it changed my whole way of approaching critical thinking: _How We Know What Isn’t So by Thomas Gilovich_. It’s all about the simple lapses in reason that affect everyone, every single day, and how you can recognize and work around them. It really impacted how I evaluate my own thinking and beliefs, and how I approach problem solving.

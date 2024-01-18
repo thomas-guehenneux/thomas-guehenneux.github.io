@@ -3,10 +3,13 @@ import { getCollection } from 'astro:content'
 import type { GetStaticPathsOptions } from 'astro'
 import Layout from '@/layouts/Layout.astro'
 
-const allPosts = await getCollection('posts')
+const allPosts = await getCollection('posts', ({ data }) => data.categories !== null)
+
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
   const langs = ['ja', 'en']
-  const allPosts = await getCollection('posts')
+  const allPosts = (await getCollection('posts', ({ data }) => data.categories !== null)).sort((a, b) => {
+    return new Date(a.data.date) > new Date(b.data.date) ? -1 : 1
+  })
   const categories = await getCollection('categories')
   return langs.flatMap((lang) => {
     return categories
@@ -15,7 +18,7 @@ export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
           .filter(
             (post) =>
               post.slug.startsWith(lang) &&
-              post.data.categories.some((postCategory) => postCategory.slug === category.slug),
+              post.data.categories?.some((postCategory) => postCategory.slug === category.slug),
           )
           .map((post) => {
             return { post }
@@ -36,7 +39,8 @@ const { lang, slug: category } = Astro.params
 
 function getAvailableLocales() {
   return allPosts
-    .filter((post) => post.data.categories.some((postCategory) => postCategory.slug === category))
+    .filter((post) => post.data.categories !== null)
+    .filter((post) => post.data.categories?.some((postCategory) => postCategory.slug === category))
     .flatMap((post) => post.slug.slice(0, 2)) as ('ja' | 'en')[]
 }
 ---

@@ -26,7 +26,6 @@ function getAvailableLocales() {
 }
 const { Content } = await page.render()
 const optimizedBackground = await getImage({ src: page.data.image, format: 'webp', quality: 80, width: 1920 })
-console.log(optimizedBackground.src)
 ---
 
 <Layout
@@ -56,7 +55,7 @@ console.log(optimizedBackground.src)
     </div>
   </div>
   <main class="container mx-auto px-3 py-12">
-    <section class="prose prose-blockquote:before:content-['“'] mx-auto">
+    <section class="prose mx-auto prose-blockquote:before:content-['“']">
       <Content />
     </section>
   </main>

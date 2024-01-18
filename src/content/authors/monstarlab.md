@@ -1,4 +1,4 @@
 ---
 name: Monstarlab
-image: /assets/img/authors/monstarlab.png
+image: "@/assets/authors/monstarlab.png"
 ---

@@ -1,10 +1,11 @@
 ---
-import Layout from '@/layouts/Layout.astro'
-import { getCollection, getEntries } from 'astro:content'
-import type { GetStaticPathsOptions } from 'astro'
-import { getRelativeLocaleUrl } from 'astro:i18n'
-import { getImage } from 'astro:assets'
 import homeImage from '@/assets/home.webp'
+import Layout from '@/layouts/Layout.astro'
+import type { GetStaticPathsOptions } from 'astro'
+import { getImage } from 'astro:assets'
+import { getCollection } from 'astro:content'
+import { getRelativeLocaleUrl } from 'astro:i18n'
+import CategoryNav from '~/components/CategoryNav.astro'
 
 const optimizedBackground = await getImage({ src: homeImage, format: 'webp' })
 
@@ -21,18 +22,20 @@ export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
 }
 
 const { page } = Astro.props
-const { lang } = Astro.params
+const { lang } = Astro.params as { lang: 'ja' | 'en' }
 
 // Get all categories with posts in current locale
 const categories = await getCollection('posts', ({ slug }) => {
   return slug.startsWith(lang)
-}).then(async (posts) => [
-  ...new Set(
-    await Promise.all(posts.map(async (post) => await getEntries(post.data.categories))).then((categories) =>
-      categories.flat(),
-    ),
-  ),
-])
+}).then(async (posts) => {
+  const categorySlugs = posts
+    .map((post) => post.data.categories?.map((category) => category.slug))
+    .filter(Boolean)
+    .flat()
+  return await getCollection('categories', ({ slug }) => {
+    return categorySlugs.includes(slug)
+  })
+})
 ---
 
 <Layout title="TO_SET" image="" description="TO_SET" availableLocales={['ja', 'en']} lang={lang as 'ja' | 'en'}>
@@ -45,25 +48,15 @@ const categories = await getCollection('posts', ({ slug }) => {
       </div>
     </div>
     <div class="container max-w-5xl">
-      <ul class="flex gap-4">
-        {
-          categories.map((category) => (
-            <>
-              <li class="bg-ml-yellow rounded border-gray-400 px-5 py-2.5">
-                <a href={getRelativeLocaleUrl(lang, '/')}>All</a>
-              </li>
-              <li class="bg-ml-yellow rounded border-gray-400 px-5 py-2.5">
-                <a href={getRelativeLocaleUrl(lang, `/categories/${category.slug}`)}>{category.data.name}</a>
-              </li>
-            </>
-          ))
-        }
-      </ul>
-      <ul class="flex gap-4">
+      <CategoryNav {categories} {lang} class="pb-2.5 pt-12" />
+      <ul class="py-12">
         {
           page.data.map((post) => (
             <li>
-              <a href={getRelativeLocaleUrl(lang, `posts/${post.slug.split('/')[1]}`)}>{post.data.title}</a>
+              <a href={getRelativeLocaleUrl(lang, `posts/${post.slug.split('/')[1]}`)}>
+                {post.data.title}
+                {getRelativeLocaleUrl(lang, `posts/${post.slug.split('/')[1]}`)}
+              </a>
             </li>
           ))
         }

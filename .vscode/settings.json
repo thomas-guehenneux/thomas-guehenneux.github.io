@@ -1,9 +1,22 @@
 {
   "eslint.validate": ["javascript", "javascriptreact", "astro", "typescript", "typescriptreact"],
   "prettier.documentSelectors": ["**/*.astro", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+  // organize imports (removes unused), then eslint fix on save
   "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll": "explicit"
+  },
   "editor.formatOnSave": true,
   "files.insertFinalNewline": true,
   "editor.insertSpaces": true,
-  "editor.tabSize": 2
+  "editor.tabSize": 2,
+
+  // adds tailwind autocomplete in other places
+  "tailwindCSS.classAttributes": ["class", "className", "class:list"],
+  "tailwindCSS.experimental.classRegex": [
+    ["(?:classnames|classNames|cx|clsx)\\(([^)]*)\\)", "(?:')((?:\\'|[^'])*)(?:')"],
+    ["(?:classnames|classNames|cx|clsx)\\(([^)]*)\\)", "(?:\")((?:\\\"|[^\"])*)(?:\")"],
+    ["(?:classnames|classNames|cx|clsx)\\(([^)]*)\\)", "(?:`)((?:\\`|[^`])*)(?:`)"]
+  ]
 }
