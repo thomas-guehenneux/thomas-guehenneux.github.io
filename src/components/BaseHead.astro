@@ -55,7 +55,7 @@ function getAlternateURL(locale: string) {
   ]}
 />
 <link rel="sitemap" href="/sitemap-index.xml" />
-<!-- <link rel="preload" as="image" href={image} /> -->
+<link rel="preload" as="image" href={image} />
 
 {availableLocales.map((locale) => <link rel="alternate" href={getAlternateURL(locale)} hreflang={locale} />)}
 
