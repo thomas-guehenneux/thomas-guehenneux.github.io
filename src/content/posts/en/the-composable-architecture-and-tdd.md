@@ -20,7 +20,7 @@ Recently, our team's attention shifted towards The Composable architecture. This
 ### Theory walkthrough
 #### TCA
 If you are reading this article I would assume that you already have some knowledge about what is TCA. Anyway here below you can find a quick brief with a diagram about this architecture.
-![TCA Diagram](@/assets/posts/The-Composable-architecture-and-TDD/TCA-diagram.png)
+![TCA Diagram](@/assets/posts/the-composable-architecture-and-tdd/TCA-diagram.png)
 The Composable Architecture is a framework that can be used to build state-driven, testable applications. In TCA, each feature is represented by a Store that holds the feature's State and Reducer function. Feature State is updated by sending an Action to the Reducer function. The Reducer function takes the current state and action as parameters and mutates the current state to produce a new state. The View observes the state and updates itself when the state changes. \
 Additionally, the Store manages feature Environment dependencies (API client, database client, location manager, etc.) that can be invoked by the Reducer function, potentially producing Effects. Effects can, in turn, trigger another action to be sent to the Reducer. This simple flow ensures that feature data flows in a unidirectional manner and decouples the View from the business logic, which is crucial when developing a mobile application. \
 Keeping this in mind, we can recognise one of the key advantages of TCA - Testability. TCA strictly separates the view from business logic, enabling it to be tested without the need to create any views or provide any runtime dependencies. \
@@ -43,7 +43,7 @@ The TDD flow is simple and consists of only three steps:
 Let's say I want to have a TextField where user will input a name of their friend. There also will be a Discover button that should be enabled only when input name is not empty.
 ##### ❌ Red:
 First, let's start with implementing a failing test. Here, in the screenshot below, you can see how the TCA library conveniently displays failing tests. It highlights all state changes and fields that differ from the expected output.
-![Failing test](@/assets/posts/The-Composable-architecture-and-TDD/failing-test-screenshot.png)
+![Failing test](@/assets/posts/the-composable-architecture-and-tdd/failing-test-screenshot.png)
 ##### ✅ Green:
 Now let's make this test pass by implementing the logic:
 ```swift
@@ -72,7 +72,7 @@ public struct HomeFeature: Reducer {
 }
 ```
 All good, now the test passes:
-![Passing test](@/assets/posts/The-Composable-architecture-and-TDD/passing-test-screenshot.png)
+![Passing test](@/assets/posts/the-composable-architecture-and-tdd/passing-test-screenshot.png)
 ##### 📈 Refactor:
 I want to refactor the `discoverButtonDisabled` boolean in this section. I anticipate that in the future, this Discover button will trigger an API call and be replaced by a `ProgressView`. To prepare for this, let's convert the boolean into an enum value. Again, first start by changing your test implementation and then move to the Feature. \
 **Test:**
