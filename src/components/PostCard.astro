@@ -28,7 +28,7 @@ const description = convert((await marked.parseInline(post.body)).replace(/<[^>]
         alt={post.data.title}
         class="mb-6 h-[200px] w-full rounded object-cover"
         transition:name=`hero-${post.slug}`
-        formats={['webp', 'avif']}
+        formats={['avif', 'webp']}
       />
     </a>
     <div class="font-light text-gray-500">{post.data.date.toLocaleDateString(lang, { dateStyle: 'long' })}</div>
