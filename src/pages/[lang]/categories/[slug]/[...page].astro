@@ -49,7 +49,8 @@ function getAvailableLocales() {
     .flatMap((post) => post.slug.slice(0, 2)) as ('ja' | 'en')[]
 }
 
-const optimizedBackground = await getImage({ src: homeImage, format: 'webp' })
+const optimizedBackgroundWebp = await getImage({ src: homeImage, format: 'webp' })
+const optimizedBackgroundAvif = await getImage({ src: homeImage, format: 'avif' })
 
 // Get all categories with posts in current locale
 const categories = await getCollection('posts', ({ slug }) => {
@@ -74,7 +75,7 @@ const categories = await getCollection('posts', ({ slug }) => {
 >
   <div class="relative">
     <div
-      style={`background-image: url(${optimizedBackground.src});`}
+      style={`background-image:image-set(url('${optimizedBackgroundAvif.src}') 1x),image-set(url('${optimizedBackgroundWebp.src}') 1x)`}
       class="min-h-[500px] w-full bg-cover bg-center after:absolute after:size-full after:bg-black/40"
     >
     </div>
@@ -85,7 +86,7 @@ const categories = await getCollection('posts', ({ slug }) => {
       {
         page.data.map((post) => (
           <li>
-            <PostCard post={post} {lang} />
+            <PostCard {post} {lang} />
           </li>
         ))
       }
