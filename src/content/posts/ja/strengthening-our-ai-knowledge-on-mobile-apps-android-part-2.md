@@ -2,14 +2,14 @@
 title: "モバイルアプリ・AI知識の強化-3Dメガネ"
 tags: [AI, AR, Android]
 image: "@/assets/posts/strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/header.jpg"
-authorIds:
+authors:
   - dinakar-maurya
 categories:
   - android
 date: 2023-11-30
 ---
 
-先日投稿したブログ記事[モバイルアプリの AI 知識を強化](https://engineering.monstar-lab.com/jp/post/2023/08/31/Strengthening-our-AI-knowledge-on-mobile-apps/)では、AI を使ったリップスティック機能をご紹介しました。本日は続編とし、3D メガネのフィルターについて記事にしました！
+先日投稿したブログ記事[モバイルアプリの AI 知識を強化](https://engineering.monstar-lab.com/jp/post/2023/08/31/strengthening-our-ai-knowledge-on-mobile-apps/)では、AI を使ったリップスティック機能をご紹介しました。本日は続編とし、3D メガネのフィルターについて記事にしました！
 
 # 3D メガネのフィルター
 
@@ -17,15 +17,18 @@ date: 2023-11-30
 
 以下は、3D メガネをかけた最終的なスクリーンショットです。
 
-![](@/assets/posts//strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/final_screen_shot.jpg)
+![](@/assets/posts/strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/final_screen_shot.jpg)
 次の動画は、3Dメガネを目の上にリアルタイムで表示し、最終的な出力を紹介するデモビデオです。これは、目の位置の検出とそれに応じてメガネのレンダリングを示しています。
-{{ html5-link="/assets/posts/Strengthening-our-AI-knowledge-on-mobile-apps-Android-Part-2/final_video.mov" }}
 
+<video width="400" controls autoplay>
+  <source src="/assets/videos/posts/strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/final_video.webm" type="video/webm">
+  Your browser does not support HTML video.
+</video>
 # ハイライト
 
 新しい重要なコンポーネントは、下のイメージ中に矢印で強調表示されている部分です。
 
-![](@/assets/posts//strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/new_module_marked.jpg)
+![](@/assets/posts/strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/new_module_marked.jpg)
 
 # ４つの新モジュール
 
@@ -173,12 +176,12 @@ displayThreeDView ->
 
 **A.** 下の画像は、スクリーン座標が描かれた正方形または長方形の背景をスクリーン上に表示したものです。これは、ランドマークポイントが正しく配置され、ビットマップ上の意図した位置に正確に配置されていることを確認するのに役立ちます。
 
-![スクリーン上のデバッグランドマークポイント](@/assets/posts//strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/points_eye_window.jpg)
+![スクリーン上のデバッグランドマークポイント](@/assets/posts/strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/points_eye_window.jpg)
 Figure: スクリーン上のデバッグランドマークポイント
 
 **B.** 下の写真では、四角いオーバーレイが取り除かれ、3D メガネが正しく配置され、指定されたランドマークポイントに従っていることがわかります。
 
-![メガネを目の上に正確に配置](@/assets/posts//strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/points_eye_glass.jpg)
+![メガネを目の上に正確に配置](@/assets/posts/strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/points_eye_glass.jpg)
 Figure: メガネを目の上に正確に配置
 
 ### 2 ビットマップ上のデバッグ - drawFacePointsIncludingEyesOnBitmap 関数
@@ -187,13 +190,13 @@ Figure: メガネを目の上に正確に配置
 
 **A.** 下の写真は、唇、目、顔のランドマークを、ビットマップの上にはっきりとした色で表示したもので、これらの顔の特徴が正確に配置されていることを確認するためのものです。
 
-![ビットマップ上のデバッグランドマークポイント](@/assets/posts//strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/points_over_bitmap.jpg)
+![ビットマップ上のデバッグランドマークポイント](@/assets/posts/strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/points_over_bitmap.jpg)
 Figure: ビットマップ上のデバッグランドマークポイント
 
 **B.**
 下の写真では、3D メガネが目の上に正確に描画され、ビットマップのランドマークポイントと完全に一致しています。
 
-![ビットマップとメガネの上に描かれたデバッグランドマークポイント](@/assets/posts//strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/points_over_bitmap_glass.jpg)
+![ビットマップとメガネの上に描かれたデバッグランドマークポイント](@/assets/posts/strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/points_over_bitmap_glass.jpg)
 Figure: ビットマップとメガネの上に描かれたデバッグランドマークポイント
 
 # なぜ UI デバッグが重要なのか
@@ -216,7 +219,7 @@ displayDebugScreenCoordinatesView と drawFacePointsIncludingEyesOnBitmap の間
 
 下の画像は、カメラ画像が小さく、点とメガネが離れて配置されていることを示しています。
 
-![](@/assets/posts//strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/without_scale_issue.jpg)
+![](@/assets/posts/strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/without_scale_issue.jpg)
 
 試行錯誤と調整によりこれらの課題を解決し、画面上のランドマークポイントの適切なマッピングを維持しながら、3D モデルをより正確に描画することに成功しました。
 
@@ -235,12 +238,12 @@ displayDebugScreenCoordinatesView と drawFacePointsIncludingEyesOnBitmap の間
 **問題 01**
 下の画像は、ランドマークポイントが水平方向にずれている問題です。黄色のカラーランドマークポイントが右側にずれています。
 
-![](@/assets/posts//strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/horizontal_shifting_right_side_issue.jpg)
+![](@/assets/posts/strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/horizontal_shifting_right_side_issue.jpg)
 
 **問題 02**
 
 下の画像は、ランドマークポイントが垂直方向にずれている問題です。黄色の点が下側にずれています。
-![](@/assets/posts//strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/vertical_shifting_bottom_side_issue.jpg)
+![](@/assets/posts/strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/vertical_shifting_bottom_side_issue.jpg)
 
 **解像度**
 
@@ -251,7 +254,7 @@ displayDebugScreenCoordinatesView と drawFacePointsIncludingEyesOnBitmap の間
 この修正により、ランドマークポイントの正確なマッピングが可能になり、以前直面していたアライメントの問題が修正されました。
 
 下の画像では、垂直方向と水平方向の点のずれが修正されています。そして、ランドマークポイントは正しい位置に表示されていることがわかります。
-![](@/assets/posts//strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/bitmap_screen_coordinates_points_exactly_same_place.jpg)
+![](@/assets/posts/strengthening-our-ai-knowledge-on-mobile-apps-android-part-2/bitmap_screen_coordinates_points_exactly_same_place.jpg)
 
 # 画像のサイズとスケーリングに使用されるデータ例
 

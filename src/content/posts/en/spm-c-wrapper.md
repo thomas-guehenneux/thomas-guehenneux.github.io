@@ -2,7 +2,7 @@
 title: "How to use C in Swift Packages"
 tags: [ios, swift, spm, c]
 image: "@/assets/posts/spm-c-wrapper/header.jpg"
-authorIds:
+authors:
   - tiago-bras
 categories:
   - ios

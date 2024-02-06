@@ -2,17 +2,17 @@
 title: "Getting started with Swift Charts - part 2"
 tags: [ios, SwiftUI, Swift Charts]
 image: "@/assets/posts/getting-started-with-swift-charts-part-2/header.png"
-authorIds:
+authors:
   - marius-constantinescu
 categories:
   - ios
 date: 2023-10-23
 ---
-Last time we looked at [how to get started with Swift Charts]({{ baseurl }}/post/2023/10/23/Getting-started-with-Swift-Charts). Let's pick up where we left off.
+Last time we looked at [how to get started with Swift Charts](/en/posts/getting-started-with-swift-charts/). Let's pick up where we left off.
 
 We have the data, we have three ChartTypes, which show temperature (line chart), precipitation (bar chart) and wind (double line chart) and we have customized the axes.
 
-![](/assets/posts/Getting-started-with-Swift-Charts/1.jpg)
+![](@/assets/posts/getting-started-with-swift-charts-part-2/1.jpg)
 
 ## Data pre-processing
 
@@ -112,7 +112,7 @@ private extension Array {
 
 Now we have managed to turn our data set from 144 points to 24 points. We can use this one to draw the wind chart instead, and the chart immediately looks better.
 
-![](/assets/posts/Getting-started-with-Swift-Charts/2.png)
+![](@/assets/posts/getting-started-with-swift-charts-part-2/2.png)
 
 ## Interactive charts
 
@@ -232,8 +232,11 @@ Printing the latest measurement or the currently selected measurements above the
 
 And here's the LollipopView in action. We just made our charts interactive!
 
-![](/assets/posts/Getting-started-with-Swift-Charts/3.png)
-<center>{{ html5-link="/assets/posts/Getting-started-with-Swift-Charts/4.mov" }}</center>
+![](@/assets/posts/getting-started-with-swift-charts-part-2/3.png)
+<video width="400" controls autoplay>
+  <source src="/assets/videos/posts/getting-started-with-swift-charts-part-2/4.webm" type="video/webm">
+  Your browser does not support HTML video.
+</video>
 
 Resources:
 1. [Swift-Charts-Examples](https://github.com/jordibruin/Swift-Charts-Examples)

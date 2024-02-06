@@ -2,7 +2,7 @@
 title: "Getting started with Swift Charts - part 1"
 tags: [ios, SwiftUI, Swift Charts]
 image: "@/assets/posts/getting-started-with-swift-charts/header.png"
-authorIds:
+authors:
   - marius-constantinescu
 categories:
   - ios
@@ -86,7 +86,7 @@ extension StationMeasurements {
 }
 ```
 
-![](/assets/posts/Getting-started-with-Swift-Charts/1.png)
+![](@/assets/posts/getting-started-with-swift-charts/1.png)
 
 ## Basic Charts
 We now have the data in our project, we can go ahead and start playing with it.
@@ -134,7 +134,7 @@ struct ChartView: View {
 
 For the other two chart types, we can return `EmptyView()` for now. Here is the line chart showing the temperature data:
 
-![](/assets/posts/Getting-started-with-Swift-Charts/2.png)
+![](@/assets/posts/getting-started-with-swift-charts/2.png)
 
 Let's continue and, similarly, create the bar chart. This time, we have to use the `BarMark`, but mostly everything else remains the same; we can remove the `interpolationMethod`, which doesn't make sense for a bar chart, and just change the identifiers.
 
@@ -181,7 +181,7 @@ case .wind(let windData):
     }
 ```
 
-![](/assets/posts/Getting-started-with-Swift-Charts/3.png)
+![](@/assets/posts/getting-started-with-swift-charts/3.png)
 
 Now, we have the data plotted, but we would like to configure the axes. We want the vertical axis to be to the left of the chart, and we want to be able to change the font of the label on the vertical axes. Adding this code after the `Chart {...}` does the trick.
 
@@ -196,7 +196,7 @@ Now, we have the data plotted, but we would like to configure the axes. We want 
 
 But that only customizes one of the three charts, and we don't like to repeat code.
 
-![](/assets/posts/Getting-started-with-Swift-Charts/4.png)
+![](@/assets/posts/getting-started-with-swift-charts/4.png)
 
 So what we want now is to extract the Chart content, and use only one `Chart`, to be able to customize the axes the same way for all types of charts without repeating code.
 
@@ -309,8 +309,8 @@ We also want to customize the horizontal axes. On this one, we display dates. Si
 ```
 
 So here's how far we've come:
-![](/assets/posts/Getting-started-with-Swift-Charts/5.jpg)
+![](@/assets/posts/getting-started-with-swift-charts/5.jpg)
 
-Where can we go from here? It would be nice if we could tap on the chart to see the exact measurement value, right? And maybe we can do something about that wind chart, which looks a bit crowded. We're looking at that in [part 2]({{ baseurl }}/post/2023/10/23/Getting-started-with-Swift-Charts-part-2).
+Where can we go from here? It would be nice if we could tap on the chart to see the exact measurement value, right? And maybe we can do something about that wind chart, which looks a bit crowded. We're looking at that in [part 2](/en/posts/getting-started-with-swift-charts-part-2/).
 
 _Article photo generated with [Midjourney](https://www.midjourney.com/)_

@@ -8,7 +8,7 @@ tags:
     unit testing,
   ]
 image: "@/assets/posts/the-composable-architecture-and-tdd/header.png"
-authorIds:
+authors:
   - oleksandr-mochalov
 categories:
   - ios

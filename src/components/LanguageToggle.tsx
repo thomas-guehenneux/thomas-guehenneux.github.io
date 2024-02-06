@@ -1,10 +1,10 @@
 import { As } from '@kobalte/core'
 
-import { Languages } from 'lucide-solid'
 import { Button } from '@/components/ui/button'
-import { navigate } from 'astro:transitions/client'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import type { Locales } from '~/types/i18n'
+import type { Locales } from '@/types/i18n'
+import { navigate } from 'astro:transitions/client'
+import { Languages } from 'lucide-solid'
 
 export function LanguageToggle(props: { jaPath: string; enPath: string; availableLocales: Locales[]; lang: Locales }) {
   return (

@@ -2,16 +2,17 @@ import { defineCollection, reference, z } from 'astro:content'
 
 const authors = defineCollection({
   type: 'content',
-  schema: z.object({
-    name: z.string().min(1, { message: 'Name is required' }),
-    nameJa: z.string().optional(),
-    about: z.string().optional(),
-    occupation: z.string().optional(),
-    twitter: z.string().nullish(),
-    github: z.string().nullish(),
-    slack: z.string().optional(),
-    image: z.string().optional(),
-  }),
+  schema: ({ image }) =>
+    z.object({
+      name: z.string().min(1, { message: 'Name is required' }),
+      nameJa: z.string().optional(),
+      about: z.string().optional(),
+      occupation: z.string().optional(),
+      twitter: z.string().nullish(),
+      github: z.string().nullish(),
+      slack: z.string().optional(),
+      image: image(),
+    }),
 })
 
 const posts = defineCollection({
@@ -21,8 +22,8 @@ const posts = defineCollection({
       title: z.string().min(1, { message: 'Title is required' }),
       image: image(),
       tags: z.array(z.string()),
-      categories: z.array(reference('categories')).nullable(),
-      authorIds: z.array(reference('authors')),
+      categories: z.array(reference('categories')).optional(),
+      authors: z.array(reference('authors')),
       date: z.date(),
     }),
 })

@@ -2,7 +2,7 @@
 title: "Utilising the iOS Secure Enclave with your data"
 tags: [ios, security, Swift]  
 image: "@/assets/posts/utilising-the-ios-secure-enclave-with-your-data/header.png"
-authorIds:
+authors:
 - andrew-lloyd
 categories:
 - ios
@@ -16,7 +16,7 @@ The Secure Enclave is a pivotal part of most modern Apple devices. On your iPhon
 Often people's first assumption is that the Secure Enclave includes storage for all types of data, similar to like how we use Apple Keychain or UserDefaults services, but it doesn't. What it can do is use Apple's distinct Secure Enclave algorithms to provide and store encryption keys and other cryptographic material. The Secure Enclave only supports P256 elliptic curve keys and offers around 4MB of storage, which is plenty for key storage. 
 
 Recently we had a task to utilise the secure enclave to enhance security for the data an application stored and provide an extra layer to protect that sensitive information. Interested in knowing how we did it? Then let's go...
-
+ 
 
 # How we can utilise it
 

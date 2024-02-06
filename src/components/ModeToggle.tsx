@@ -1,16 +1,16 @@
 import { As } from '@kobalte/core'
 
-import { Sun, Moon, Laptop } from 'lucide-solid'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { createSignal, createEffect } from 'solid-js'
+import { Laptop, Moon, Sun } from 'lucide-solid'
+import { createEffect, createSignal } from 'solid-js'
 
 export function ModeToggle() {
-  const [theme, setThemeState] = createSignal<'theme-light' | 'dark' | 'system'>('theme-light')
+  const [theme, setThemeState] = createSignal<'light' | 'dark' | 'system'>('light')
 
   createEffect(() => {
     const isDarkMode = document.documentElement.classList.contains('dark')
-    setThemeState(isDarkMode ? 'dark' : 'theme-light')
+    setThemeState(isDarkMode ? 'dark' : 'light')
   })
 
   createEffect(() => {
@@ -29,7 +29,7 @@ export function ModeToggle() {
         </As>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onSelect={() => setThemeState('theme-light')}>
+        <DropdownMenuItem onSelect={() => setThemeState('light')}>
           <Sun class="mr-2 size-4" />
           <span>Light</span>
         </DropdownMenuItem>

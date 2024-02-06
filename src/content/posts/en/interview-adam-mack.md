@@ -2,7 +2,7 @@
 title: "Behind the screens: Interview with Adam Mack, Lead Product Manager at Monstarlab"
 tags: [interview]
 image: "@/assets/posts/interview-adam-mack/header.jpeg"
-authorIds:
+authors:
   - monstarlab
 categories:
   - afk

@@ -2,12 +2,14 @@ import mdx from '@astrojs/mdx'
 import sitemap from '@astrojs/sitemap'
 import solidJs from '@astrojs/solid-js'
 import tailwind from '@astrojs/tailwind'
+import vercel from '@astrojs/vercel/static'
 import { defineConfig } from 'astro/config'
 import remarkCaptions from 'remark-captions'
 
 // https://astro.build/config
 export default defineConfig({
   site: 'http://localhost:4321',
+  trailingSlash: 'always',
   integrations: [
     solidJs(),
     tailwind({
@@ -33,8 +35,15 @@ export default defineConfig({
     locales: ['en', 'ja'],
     routing: {
       prefixDefaultLocale: true,
+      redirectToDefaultLocale: false,
     },
   },
+  prefetch: {
+    prefetchAll: true,
+  },
   output: 'static',
-  // adapter: vercel(),
+  adapter: vercel(),
+  // experimental: {
+  //   contentCollectionCache: true,
+  // },
 })

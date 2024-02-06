@@ -2,9 +2,8 @@
 title: ソリューションアーキテクトについて知ろう。いい本が出たよ
 tags: [BookReview]
 image: "@/assets/posts/solution-architect-book-review/pexels-olha-ruskykh-5984617.jpg"
-authorIds:
+authors:
 - kiyotaka-kunihira
-categories:
 date: 2023-12-15
 ---
 

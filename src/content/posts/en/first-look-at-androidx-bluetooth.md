@@ -2,7 +2,7 @@
 title: "First look at AndroidX Bluetooth" 
 tags: [android, bluetooth, androidx, library, kotlin] 
 image: "@/assets/posts/first-look-at-androidx-bluetooth/header.jpg"
-authorIds:
+authors:
   - eduard-ablekimov
 categories:
   - android

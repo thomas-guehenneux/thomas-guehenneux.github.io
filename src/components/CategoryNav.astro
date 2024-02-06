@@ -11,30 +11,36 @@ const { lang, categories, class: className } = Astro.props
 ---
 
 <nav class={className}>
-  <ul class="flex gap-4">
-    <li
-      class:list={[
-        'rounded-md border border-gray-300 px-5 py-2.5',
-        {
-          'bg-ml-yellow': getRelativeLocaleUrl(lang, '') === Astro.url.pathname,
-        },
-      ]}
-    >
-      <a href={getRelativeLocaleUrl(lang, '/')}>All</a>
-    </li>
+  <ul class="flex flex-wrap gap-4">
+    <a href={getRelativeLocaleUrl(lang, '/')}>
+      <li
+        class:list={[
+          'rounded-md border border-accent px-5 py-2.5',
+          {
+            'bg-ml-yellow': Astro.url.pathname === getRelativeLocaleUrl(lang, ''),
+            'hover:bg-accent': Astro.url.pathname !== getRelativeLocaleUrl(lang, ''),
+          },
+        ]}
+      >
+        All
+      </li>
+    </a>
     {
       categories.map((category) => (
         <>
-          <li
-            class:list={[
-              'rounded-md border border-gray-300 px-5 py-2.5',
-              {
-                'bg-ml-yellow': getRelativeLocaleUrl(lang, `/categories/${category.slug}`) === Astro.url.pathname,
-              },
-            ]}
-          >
-            <a href={getRelativeLocaleUrl(lang, `/categories/${category.slug}`)}>{category.data.name}</a>
-          </li>
+          <a href={getRelativeLocaleUrl(lang, `/categories/${category.slug}`)}>
+            <li
+              class:list={[
+                'rounded-md border border-accent px-5 py-2.5',
+                {
+                  'bg-ml-yellow': Astro.url.pathname === getRelativeLocaleUrl(lang, `categories/${category.slug}`),
+                  'hover:bg-accent': Astro.url.pathname !== getRelativeLocaleUrl(lang, `categories/${category.slug}`),
+                },
+              ]}
+            >
+              {category.data.name}
+            </li>
+          </a>
         </>
       ))
     }

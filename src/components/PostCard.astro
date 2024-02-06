@@ -1,0 +1,67 @@
+---
+import { Image, Picture } from 'astro:assets'
+import { getEntries, type CollectionEntry } from 'astro:content'
+import { getRelativeLocaleUrl } from 'astro:i18n'
+import { convert } from 'html-to-text'
+import { marked } from 'marked'
+
+interface Props {
+  post: CollectionEntry<'posts'>
+  class?: string | undefined
+  lang: 'en' | 'ja'
+}
+
+const { post, lang } = Astro.props
+const authors = await getEntries(post.data.authors)
+const categories = post.data.categories ? await getEntries(post.data.categories) : []
+const postUrl = getRelativeLocaleUrl(lang, `posts/${post.slug.split('/')[1]}`)
+const description = convert((await marked.parseInline(post.body)).replace(/<[^>]+>/g, ''))
+  .replace(/#/g, '')
+  .replace(/>/g, ' ')
+---
+
+<div class="flex h-full flex-col justify-between overflow-hidden rounded-xl border p-4 shadow-sm">
+  <div>
+    <a href={postUrl}>
+      <Picture
+        src={post.data.image}
+        alt={post.data.title}
+        class="mb-6 h-[200px] w-full rounded object-cover"
+        transition:name=`hero-${post.slug}`
+      />
+    </a>
+    <div class="font-light text-gray-500">{post.data.date.toLocaleDateString(lang, { dateStyle: 'long' })}</div>
+    <a href={postUrl}>
+      <h4 class="my-4 text-2xl font-medium leading-normal">{post.data.title}</h4>
+    </a>
+  </div>
+  <div>
+    <p class="mb-4 line-clamp-6 text-base text-zinc-400">{description}</p>
+    <div class="flex items-center gap-3 -space-x-1 overflow-hidden">
+      {
+        authors.map((author) => (
+          <Image
+            src={author.data.image}
+            alt={author.data.name}
+            width="28"
+            height="28"
+            densities={[2, 3]}
+            class="size-7 rounded-full"
+          />
+        ))
+      }
+      <div>{authors.map((author) => author.data.name).join(', ')}</div>
+    </div>
+    <ul class="mt-6 flex gap-4">
+      {
+        categories.map((category) => (
+          <a href={getRelativeLocaleUrl(lang, `categories/${category.slug}`)}>
+            <li class="select-none rounded-full border border-accent px-3.5 py-2 text-xs shadow-sm hover:bg-accent">
+              {category.data.name}
+            </li>
+          </a>
+        ))
+      }
+    </ul>
+  </div>
+</div>

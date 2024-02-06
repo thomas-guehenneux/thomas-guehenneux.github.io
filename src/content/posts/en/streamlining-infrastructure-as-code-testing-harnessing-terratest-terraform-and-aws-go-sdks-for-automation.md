@@ -13,7 +13,7 @@ continuous delivery
     cloud infrastructure,
   ]
 image: "@/assets/posts/streamlining-infrastructure-as-code-testing-harnessing-terratest-terraform-and-aws-go-sdks-for-automation/header.jpg"
-authorIds:
+authors:
   - james-vonhagel
 categories:
   - dev-ops

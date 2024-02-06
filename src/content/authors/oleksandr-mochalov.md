@@ -1,7 +1,4 @@
 ---
-title: Oleksandr Mochalov
-permalink: authors/oleksandr-mochalov
-authorId: oleksandr-mochalov
 name: Oleksandr Mochalov
 occupation: iOS Engineer
 about: In love with iOS development, especially bluetooth projects!

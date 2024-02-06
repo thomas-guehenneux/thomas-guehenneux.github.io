@@ -2,14 +2,12 @@
 title: "Responsive Web Design: Techniques and Best Practices"
 tags: [Responsive Web Design, Component-Driven Design]
 image: "@/assets/posts/responsive-web-design/header.png"
-authorIds:
+authors:
   - yann-de-ceukelaire
 categories:
   - frontend
 date: 2023-10-26
 ---
-
-# Responsive Web Design: Techniques and Best Practices
 
 Responsive web design is a term frequently used in web design and development. But what exactly does it entail? This blog post will introduce the multitude of facets of responsive web design, as it covers more ground than one would initially think.
 

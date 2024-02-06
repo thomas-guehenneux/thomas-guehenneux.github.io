@@ -2,7 +2,7 @@
 title: "Azure FrontDoorは実はWebSocketをサポートしているのではないか？"
 tags: [azure, trafficManager, containerApps]
 image: "@/assets/posts/use-websocket-app-on-azure-front-door/header.jpeg"
-authorIds:
+authors:
   - kento-morita
 categories:
   - infrastructure
@@ -190,7 +190,7 @@ localhostで`node index/js`を実行して動作確認すると、以下のよ�
 続いて、Dockerfileを作成して、アプリケーションをコンテナ化します。  
 コンテナ化が完了したら、作成したアプリケーションをAzure Container Appsで動くように、Container Appsを作成します。  
 以下の公式ドキュメントを元に、Container Appsを作成します。  
-https://learn.microsoft.com/ja-jp/azure/container-apps/tutorial-code-to-cloud?tabs=bash%2Ccsharp&pivots=acr-remote
+https://learn.microsoft.com/ja-jp/azure/container-apps/tutorial-code-to-cloud?tabs=bash%2Ccbu &pivots=acr-remote
 
 詳細はリンクを参照いただければと思いますが、簡単な流れを記載します。  
 

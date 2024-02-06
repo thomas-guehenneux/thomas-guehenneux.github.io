@@ -2,7 +2,7 @@
 title: "Mastering Modern JavaScript: From Core Concepts to Advanced Techniques" 
 tags: [frontend, development, engineering]
 image: "@/assets/posts/mastering-modern-javascript-from-core-concepts-to-advanced-techniques/header.jpg"
-authorIds:
+authors:
   - genita-tahiri
 categories:
   - frontend

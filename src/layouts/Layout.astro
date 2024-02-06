@@ -15,24 +15,43 @@ const { title, description, image, availableLocales, lang } = Astro.props
 ---
 
 <script is:inline>
-  const getThemePreference = () => {
-    if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
-      return localStorage.getItem('theme')
+  function setThemeWeb(document) {
+    const getThemePreference = () => {
+      if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+        return localStorage.getItem('theme')
+      }
     }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  }
-  const isDark = getThemePreference() === 'dark'
-  document.documentElement.classList[isDark ? 'add' : 'remove']('dark')
+    const isDark = getThemePreference() === 'dark'
+    document.documentElement.classList[isDark ? 'add' : 'remove']('dark')
 
-  if (typeof localStorage !== 'undefined') {
-    const observer = new MutationObserver(() => {
-      const isDark = document.documentElement.classList.contains('dark')
-      localStorage.setItem('theme', isDark ? 'dark' : 'light')
-    })
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    if (typeof localStorage !== 'undefined') {
+      const observer = new MutationObserver(() => {
+        const isDark = document.documentElement.classList.contains('dark')
+        localStorage.setItem('theme', isDark ? 'dark' : 'light')
+      })
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    }
   }
+
+  setThemeWeb(document)
+
+  document.addEventListener('astro:before-swap', (ev) => {
+    setThemeWeb(ev.newDocument)
+  })
 </script>
 
+<!-- <script>
+  const observer = new MutationObserver(() => {
+    const isDark = document.documentElement.classList.contains('dark')
+    localStorage.setItem('theme', isDark ? 'dark' : 'light')
+  })
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+  document.addEventListener('astro:after-swap', () => {
+    localStorage.theme === 'dark'
+      ? document.documentElement.classList.add('dark')
+      : document.documentElement.classList.add('light')
+  })
+</script> -->
 <html lang={lang}>
   <head>
     <BaseHead title={title} description={description} image={image} availableLocales={availableLocales} />

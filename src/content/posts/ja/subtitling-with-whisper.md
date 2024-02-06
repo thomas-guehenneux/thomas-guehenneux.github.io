@@ -2,9 +2,8 @@
 title: "Whisperを利用して字幕を作ってみましょう"
 tags: [AI]
 image: "@/assets/posts/subtitling-with-whisper/header.jpg"
-authorIds:
+authors:
   - gwanmuk-kang
-categories:
 date: 2023-12-08
 ---
 技術の進歩によって現代は様々なコンテンツを見れるようになってきている中で、動画についてはTVからインターネットとプラットフォームへ変化してきています。

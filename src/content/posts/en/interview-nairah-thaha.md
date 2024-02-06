@@ -2,7 +2,7 @@
 title: "Behind the screens: Interview with Nairah Thaha, Immersive Technologies Engineer at Monstarlab"
 tags: [interview]  
 image: "@/assets/posts/interview-nairah-thaha/header.jpg"
-authorIds:
+authors:
 - monstarlab
 categories:
 - afk
