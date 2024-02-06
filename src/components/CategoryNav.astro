@@ -12,35 +12,32 @@ const { lang, categories, class: className } = Astro.props
 
 <nav class={className}>
   <ul class="flex flex-wrap gap-4">
-    <a href={getRelativeLocaleUrl(lang, '/')}>
-      <li
-        class:list={[
-          'rounded-md border border-accent px-5 py-2.5',
-          {
-            'bg-ml-yellow': Astro.url.pathname === getRelativeLocaleUrl(lang, ''),
-            'hover:bg-accent': Astro.url.pathname !== getRelativeLocaleUrl(lang, ''),
-          },
-        ]}
-      >
-        All
-      </li>
-    </a>
+    <li
+      class:list={[
+        'rounded-md border border-accent px-5 py-2.5',
+        {
+          'bg-ml-yellow text-black': Astro.url.pathname === getRelativeLocaleUrl(lang, ''),
+          'hover:bg-accent': Astro.url.pathname !== getRelativeLocaleUrl(lang, ''),
+        },
+      ]}
+    >
+      <a href={getRelativeLocaleUrl(lang, '/')}> All </a>
+    </li>
     {
       categories.map((category) => (
         <>
-          <a href={getRelativeLocaleUrl(lang, `/categories/${category.slug}`)}>
-            <li
-              class:list={[
-                'rounded-md border border-accent px-5 py-2.5',
-                {
-                  'bg-ml-yellow': Astro.url.pathname === getRelativeLocaleUrl(lang, `categories/${category.slug}`),
-                  'hover:bg-accent': Astro.url.pathname !== getRelativeLocaleUrl(lang, `categories/${category.slug}`),
-                },
-              ]}
-            >
-              {category.data.name}
-            </li>
-          </a>
+          <li
+            class:list={[
+              'rounded-md border border-accent px-5 py-2.5',
+              {
+                'bg-ml-yellow text-black':
+                  Astro.url.pathname === getRelativeLocaleUrl(lang, `categories/${category.slug}`),
+                'hover:bg-accent': Astro.url.pathname !== getRelativeLocaleUrl(lang, `categories/${category.slug}`),
+              },
+            ]}
+          >
+            <a href={getRelativeLocaleUrl(lang, `/categories/${category.slug}`)}>{category.data.name}</a>
+          </li>
         </>
       ))
     }

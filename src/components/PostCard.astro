@@ -55,11 +55,14 @@ const description = convert((await marked.parseInline(post.body)).replace(/<[^>]
     <ul class="mt-6 flex gap-4">
       {
         categories.map((category) => (
-          <a href={getRelativeLocaleUrl(lang, `categories/${category.slug}`)}>
-            <li class="select-none rounded-full border border-accent px-3.5 py-2 text-xs shadow-sm hover:bg-accent">
+          <li>
+            <a
+              class="block select-none rounded-full border border-accent px-3.5 py-2 text-xs shadow-sm hover:bg-accent"
+              href={getRelativeLocaleUrl(lang, `categories/${category.slug}`)}
+            >
               {category.data.name}
-            </li>
-          </a>
+            </a>
+          </li>
         ))
       }
     </ul>
