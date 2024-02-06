@@ -8,8 +8,8 @@ import remarkCaptions from 'remark-captions'
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'http://localhost:4321',
-  trailingSlash: 'always',
+  site: 'https://new-blog-ml.vercel.app/',
+  // trailingSlash: 'always',
   integrations: [
     solidJs(),
     tailwind({

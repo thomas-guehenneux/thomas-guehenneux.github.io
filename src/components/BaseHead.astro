@@ -1,6 +1,7 @@
 ---
 import '@/styles/globals.css'
 import { AstroFont } from 'astro-font'
+import { ViewTransitions } from 'astro:transitions'
 import { join } from 'node:path'
 
 interface Props {
@@ -80,4 +81,4 @@ function getAlternateURL(locale: string) {
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image, Astro.url)} />
-<!-- <ViewTransitions /> -->
+<ViewTransitions />

@@ -16,7 +16,7 @@ interface Props {
 }
 const { currentPage, lastPage, url } = Astro.props
 
-const firstPage = url.current.replace(/\/\d+\/$/, '/')
+const firstPage = url.current.replace(/\/\d+$/, '/')
 
 const getTwoPagesBackUrl = () => {
   if (currentPage === 3) {
@@ -35,7 +35,7 @@ const twoPagesForward = currentPage + 1 < lastPage ? `${firstPage}${currentPage 
     {
       currentPage > 1 && (
         <PaginationItem>
-          <PaginationPrevious href={url.prev} />
+          <PaginationPrevious href={url.prev + '/'} />
         </PaginationItem>
       )
     }
@@ -56,17 +56,17 @@ const twoPagesForward = currentPage + 1 < lastPage ? `${firstPage}${currentPage 
     {
       currentPage - 1 > 0 && (
         <PaginationItem>
-          <PaginationLink href={url.prev}>{currentPage - 1}</PaginationLink>
+          <PaginationLink href={url.prev + '/'}>{currentPage - 1}</PaginationLink>
         </PaginationItem>
       )
     }
     <PaginationItem>
-      <PaginationLink href={url.current}>{currentPage}</PaginationLink>
+      <PaginationLink href={url.current + '/'}>{currentPage}</PaginationLink>
     </PaginationItem>
     {
       currentPage < lastPage && (
         <PaginationItem>
-          <PaginationLink href={url.next}>{currentPage + 1}</PaginationLink>
+          <PaginationLink href={url.next + '/'}>{currentPage + 1}</PaginationLink>
         </PaginationItem>
       )
     }
@@ -87,7 +87,7 @@ const twoPagesForward = currentPage + 1 < lastPage ? `${firstPage}${currentPage 
     {
       currentPage < lastPage && (
         <PaginationItem>
-          <PaginationNext href={url.next} />
+          <PaginationNext href={url.next + '/'} />
         </PaginationItem>
       )
     }
