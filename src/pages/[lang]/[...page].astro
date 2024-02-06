@@ -8,8 +8,7 @@ import { getImage } from 'astro:assets'
 import { getCollection } from 'astro:content'
 import PostCard from '~/components/PostCard.astro'
 
-const optimizedBackgroundWebp = await getImage({ src: homeImage, format: 'webp' })
-const optimizedBackgroundAvif = await getImage({ src: homeImage, format: 'avif' })
+const optimizedBackground = await getImage({ src: homeImage, format: 'webp' })
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
   const langs = ['ja', 'en']
@@ -43,7 +42,7 @@ const categories = await getCollection('posts', ({ slug }) => {
 
 <Layout
   title="TO_SET"
-  image={optimizedBackgroundWebp.src}
+  image={optimizedBackground.src}
   description="TO_SET"
   availableLocales={['ja', 'en']}
   lang={lang as 'ja' | 'en'}
@@ -51,7 +50,7 @@ const categories = await getCollection('posts', ({ slug }) => {
   <main>
     <div class="relative">
       <div
-        style={`background-image:image-set(url('${optimizedBackgroundAvif.src}') 1x),image-set(url('${optimizedBackgroundWebp.src}') 1x)`}
+        style={`background-image: url(${optimizedBackground.src});`}
         class="min-h-[500px] w-full bg-cover bg-center after:absolute after:size-full after:bg-black/40"
       >
       </div>
