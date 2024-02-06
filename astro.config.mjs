@@ -8,7 +8,8 @@ import remarkCaptions from 'remark-captions'
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'http://localhost:4321',
+  // site: 'http://localhost:4321',
+  trailingSlash: 'always',
   integrations: [
     solidJs(),
     tailwind({
