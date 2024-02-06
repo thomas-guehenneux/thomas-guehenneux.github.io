@@ -12,31 +12,37 @@ const { lang, categories, class: className } = Astro.props
 
 <nav class={className}>
   <ul class="flex flex-wrap gap-4">
-    <li
-      class:list={[
-        'rounded-md border border-accent px-5 py-2.5',
-        {
-          'bg-ml-yellow text-black': Astro.url.pathname === getRelativeLocaleUrl(lang, ''),
-          'hover:bg-accent': Astro.url.pathname !== getRelativeLocaleUrl(lang, ''),
-        },
-      ]}
-    >
-      <a href={getRelativeLocaleUrl(lang, '/')}> All </a>
+    <li>
+      <a
+        class:list={[
+          'block select-none rounded-md border border-accent px-5 py-2.5',
+          {
+            'bg-ml-yellow text-black': Astro.url.pathname === getRelativeLocaleUrl(lang, ''),
+            'hover:bg-accent': Astro.url.pathname !== getRelativeLocaleUrl(lang, ''),
+          },
+        ]}
+        href={getRelativeLocaleUrl(lang, '/')}
+      >
+        All
+      </a>
     </li>
     {
       categories.map((category) => (
         <>
-          <li
-            class:list={[
-              'rounded-md border border-accent px-5 py-2.5',
-              {
-                'bg-ml-yellow text-black':
-                  Astro.url.pathname === getRelativeLocaleUrl(lang, `categories/${category.slug}`),
-                'hover:bg-accent': Astro.url.pathname !== getRelativeLocaleUrl(lang, `categories/${category.slug}`),
-              },
-            ]}
-          >
-            <a href={getRelativeLocaleUrl(lang, `/categories/${category.slug}`)}>{category.data.name}</a>
+          <li>
+            <a
+              class:list={[
+                'block select-none rounded-md border border-accent px-5 py-2.5',
+                {
+                  'bg-ml-yellow text-black':
+                    Astro.url.pathname === getRelativeLocaleUrl(lang, `categories/${category.slug}`),
+                  'hover:bg-accent': Astro.url.pathname !== getRelativeLocaleUrl(lang, `categories/${category.slug}`),
+                },
+              ]}
+              href={getRelativeLocaleUrl(lang, `/categories/${category.slug}`)}
+            >
+              {category.data.name}
+            </a>
           </li>
         </>
       ))
