@@ -43,7 +43,7 @@ export default defineConfig({
   },
   output: 'static',
   adapter: vercel(),
-  // experimental: {
-  //   contentCollectionCache: true,
-  // },
+  experimental: {
+    contentCollectionCache: true,
+  },
 })
