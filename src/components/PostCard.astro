@@ -31,7 +31,7 @@ const description = convert((await marked.parseInline(post.body)).replace(/<[^>]
         formats={['avif', 'webp']}
       />
     </a>
-    <div class="font-light text-gray-400">{post.data.date.toLocaleDateString(lang, { dateStyle: 'long' })}</div>
+    <div class="font-light text-gray-500">{post.data.date.toLocaleDateString(lang, { dateStyle: 'long' })}</div>
     <a href={postUrl}>
       <h4 class="my-4 text-2xl font-medium leading-normal">{post.data.title}</h4>
     </a>
