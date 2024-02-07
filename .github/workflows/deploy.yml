@@ -29,7 +29,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            dist
             node_modules
           key: ${{ runner.os }}-astro-build-${{ hashFiles('dist') }}
           restore-keys: |
