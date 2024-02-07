@@ -4,12 +4,9 @@ import CategoryNav from '@/components/CategoryNav.astro'
 import ThePagination from '@/components/ThePagination.astro'
 import Layout from '@/layouts/Layout.astro'
 import type { GetStaticPathsOptions } from 'astro'
-import { getImage } from 'astro:assets'
 import { getCollection } from 'astro:content'
 import Hero from '~/components/Hero.astro'
 import PostCard from '~/components/PostCard.astro'
-
-const optimizedBackground = await getImage({ src: homeImage, format: 'webp' })
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
   const langs = ['ja', 'en']
