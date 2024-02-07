@@ -1,8 +1,6 @@
 ---
 import GreyLogo from '@/assets/ml-logo-grey.png'
 import YellowLogo from '@/assets/ml-logo-yellow.png'
-import { LanguageToggle } from '@/components/LanguageToggle'
-import { ModeToggle } from '@/components/ModeToggle'
 import { type Locales } from '@/types/i18n'
 import { Picture } from 'astro:assets'
 import { getRelativeLocaleUrl } from 'astro:i18n'
@@ -28,9 +26,9 @@ const currentLocaleTopPath = getRelativeLocaleUrl(lang, '/')
       <Picture class="h-4 w-auto max-w-[180px] dark:hidden" src={GreyLogo} alt="Monstar lab" />
       <Picture class="hidden h-4 w-auto max-w-[180px] dark:block" src={YellowLogo} alt="Monstar lab" />
     </a>
-    <div>
+    <!-- <div>
       <ModeToggle client:load />
       <LanguageToggle client:load {enPath} {jaPath} {availableLocales} {lang} {enTopPath} {jaTopPath} />
-    </div>
+    </div> -->
   </div>
 </header>
