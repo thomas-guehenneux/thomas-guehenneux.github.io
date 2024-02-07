@@ -18,6 +18,9 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+env:
+  NODE_OPTIONS: --max-old-space-size=6144
+
 jobs:
   build:
     runs-on: ubuntu-latest
