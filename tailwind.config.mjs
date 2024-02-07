@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 
-import defaultTheme from 'tailwindcss/defaultTheme'
 export default {
   darkMode: ['class'],
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,ts,tsx}'],
@@ -8,9 +7,9 @@ export default {
   presets: [require('./ui.preset.js')],
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['MonumentGrotesk', ...defaultTheme.fontFamily.sans],
-      },
+      // fontFamily: {
+      //   sans: ['MonumentGrotesk', ...defaultTheme.fontFamily.sans],
+      // },
       colors: {
         'ml-yellow': 'rgb(var(--ml-yellow))',
       },
