@@ -24,6 +24,7 @@ const jaPath = Astro.url.pathname.replace(/^\/(ja|en)/, '/ja')
       <Picture class="h-4 w-auto max-w-[180px] dark:hidden" src={GreyLogo} alt="Monstar lab" />
       <Picture class="hidden h-4 w-auto max-w-[180px] dark:block" src={YellowLogo} alt="Monstar lab" />
     </a>
+    <div class="">{Astro.url}</div>
     <div>
       <ModeToggle client:load />
       <LanguageToggle client:load enPath={enPath} jaPath={jaPath} availableLocales={availableLocales} lang={lang} />
