@@ -37,9 +37,6 @@ export default defineConfig({
       redirectToDefaultLocale: false,
     },
   },
-  prefetch: {
-    prefetchAll: true,
-  },
   output: 'static',
   // experimental: {
   //   contentCollectionCache: true,
