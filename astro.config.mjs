@@ -7,8 +7,7 @@ import remarkCaptions from 'remark-captions'
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://thomas-guehenneux.github.io',
-  base: '/new_blog_ml',
+  site: 'https://localhost:4321/',
   // trailingSlash: 'always',
   integrations: [
     solidJs(),
