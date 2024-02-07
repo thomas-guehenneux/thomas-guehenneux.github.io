@@ -30,6 +30,7 @@
     "lucide-solid": "^0.321.0",
     "marked": "^12.0.0",
     "remark-captions": "^2.2.3",
+    "sharp": "^0.33.2",
     "solid-js": "^1.8.12",
     "tailwind-merge": "^2.2.1",
     "tailwindcss": "^3.4.1",
