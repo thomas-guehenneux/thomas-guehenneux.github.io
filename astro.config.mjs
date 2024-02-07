@@ -25,6 +25,7 @@ export default defineConfig({
     }),
     mdx(),
   ],
+  prefetch: true,
   markdown: {
     remarkPlugins: [remarkCaptions],
     extendDefaultPlugins: true,
