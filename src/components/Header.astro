@@ -5,6 +5,7 @@ import { LanguageToggle } from '@/components/LanguageToggle'
 import { ModeToggle } from '@/components/ModeToggle'
 import { type Locales } from '@/types/i18n'
 import { Picture } from 'astro:assets'
+import { getRelativeLocaleUrl } from 'astro:i18n'
 
 interface Props {
   availableLocales: Locales[]
@@ -12,8 +13,10 @@ interface Props {
 }
 
 const { availableLocales, lang } = Astro.props
-const enPath = Astro.url.pathname.replace(/^\/(ja|en)/, '/en')
-const jaPath = Astro.url.pathname.replace(/^\/(ja|en)/, '/ja')
+const enPath = Astro.url.href.replace('/ja/', '/en/')
+const jaPath = Astro.url.href.replace('/en/', '/ja/')
+const enTopPath = getRelativeLocaleUrl('en', '/')
+const jaTopPath = getRelativeLocaleUrl('ja', '/')
 ---
 
 <header
@@ -24,10 +27,9 @@ const jaPath = Astro.url.pathname.replace(/^\/(ja|en)/, '/ja')
       <Picture class="h-4 w-auto max-w-[180px] dark:hidden" src={GreyLogo} alt="Monstar lab" />
       <Picture class="hidden h-4 w-auto max-w-[180px] dark:block" src={YellowLogo} alt="Monstar lab" />
     </a>
-    <div class="">{Astro.url}</div>
     <div>
       <ModeToggle client:load />
-      <LanguageToggle client:load enPath={enPath} jaPath={jaPath} availableLocales={availableLocales} lang={lang} />
+      <LanguageToggle client:load {enPath} {jaPath} {availableLocales} {lang} {enTopPath} {jaTopPath} />
     </div>
   </div>
 </header>
