@@ -33,7 +33,7 @@ jobs:
         with:
           path: |
             node_modules
-          key: ${{ runner.os }}-astro-build-${{ hashFiles('dist') }}
+          key: ${{ runner.os }}-astro-build
           restore-keys: |
             ${{ runner.os }}-astro-build-
 
@@ -48,7 +48,7 @@ jobs:
         run: bun install
 
       - name: Build
-        run: bun run build --site "${{ steps.pages.outputs.origin }}" --base "${{ steps.pages.outputs.base_path }}"
+        run: bun run build --site "${{ steps.pages.outputs.origin }}"
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v1
