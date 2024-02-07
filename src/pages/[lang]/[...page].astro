@@ -6,6 +6,7 @@ import Layout from '@/layouts/Layout.astro'
 import type { GetStaticPathsOptions } from 'astro'
 import { getImage } from 'astro:assets'
 import { getCollection } from 'astro:content'
+import Hero from '~/components/Hero.astro'
 import PostCard from '~/components/PostCard.astro'
 
 const optimizedBackground = await getImage({ src: homeImage, format: 'webp' })
@@ -49,10 +50,8 @@ const categories = await getCollection('posts', ({ slug }) => {
 >
   <main>
     <div class="relative">
-      <div
-        style={`background-image: url(${optimizedBackground.src});`}
-        class="min-h-[500px] w-full bg-cover bg-center after:absolute after:size-full after:bg-black/40"
-      >
+      <div class="min-h-[500px] w-full bg-cover bg-center after:absolute after:top-0 after:size-full after:bg-black/40">
+        <Hero src={homeImage} alt="" {lang} />
       </div>
     </div>
     <div class="container max-w-7xl">
