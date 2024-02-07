@@ -13,8 +13,8 @@ interface Props {
 }
 
 const { availableLocales, lang } = Astro.props
-const enPath = getRelativeLocaleUrl('en', Astro.url.pathname)
-const jaPath = getRelativeLocaleUrl('ja', Astro.url.pathname)
+const enPath = Astro.url.href.replace('/ja/', '/en/')
+const jaPath = Astro.url.href.replace('/en/', '/ja/')
 const enTopPath = getRelativeLocaleUrl('en', '/')
 const jaTopPath = getRelativeLocaleUrl('ja', '/')
 const currentLocaleTopPath = getRelativeLocaleUrl(lang, '/')

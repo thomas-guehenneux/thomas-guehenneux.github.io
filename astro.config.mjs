@@ -8,6 +8,8 @@ import remarkCaptions from 'remark-captions'
 // https://astro.build/config
 export default defineConfig({
   site: 'https://localhost:4321/',
+  base: '/new_blog_ml',
+  publicDir: 'static',
   // trailingSlash: 'always',
   integrations: [
     solidJs(),
