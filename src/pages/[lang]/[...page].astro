@@ -41,16 +41,10 @@ const categories = await getCollection('posts', ({ slug }) => {
 })
 ---
 
-<Layout
-  title="TO_SET"
-  image={optimizedBackground.src}
-  description="TO_SET"
-  availableLocales={['ja', 'en']}
-  lang={lang as 'ja' | 'en'}
->
+<Layout title="TO_SET" description="TO_SET" availableLocales={['ja', 'en']} lang={lang as 'ja' | 'en'}>
   <main>
     <div class="relative">
-      <div class="min-h-[500px] w-full bg-cover bg-center after:absolute after:top-0 after:size-full after:bg-black/40">
+      <div class="h-[500px] w-full bg-cover bg-center after:absolute after:top-0 after:size-full after:bg-black/40">
         <Hero src={homeImage} alt="" {lang} />
       </div>
     </div>
