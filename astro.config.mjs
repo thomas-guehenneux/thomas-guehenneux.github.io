@@ -2,13 +2,13 @@ import mdx from '@astrojs/mdx'
 import sitemap from '@astrojs/sitemap'
 import solidJs from '@astrojs/solid-js'
 import tailwind from '@astrojs/tailwind'
-import vercel from '@astrojs/vercel/static'
 import { defineConfig } from 'astro/config'
 import remarkCaptions from 'remark-captions'
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://new-blog-ml.vercel.app/',
+  site: 'https://thomas-guehenneux.github.io',
+  base: '/new_blog_ml',
   // trailingSlash: 'always',
   integrations: [
     solidJs(),
@@ -42,7 +42,6 @@ export default defineConfig({
     prefetchAll: true,
   },
   output: 'static',
-  adapter: vercel(),
   // experimental: {
   //   contentCollectionCache: true,
   // },
