@@ -9,6 +9,7 @@ categories:
 date: 2023-11-09
 --- 
 
+test
 AndroidX Bluetooth is a new addition to the [Jetpack Suite](https://developer.android.com/jetpack) of libraries. While currently in its alpha stage, the system already provides robust safety measures addressing [common pitfalls](https://punchthrough.com/android-ble-development-tips/) in Android BLE development. Moreover, it establishes a clear trajectory for further improvements. Official Android Developer Documentation describes AndroidX Bluetooth as:
 
 > This is the initial release of AndroidX Bluetooth APIs that provides a Kotlin API surface covering Bluetooth LE scanning and advertising, and GATT client and server use cases. It provides a minimal API surface, clear thread model with async and sync operations, and ensures all methods be executed and provides the results.
