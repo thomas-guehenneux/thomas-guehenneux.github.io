@@ -12,9 +12,9 @@ export const prerender = false
 <script>
   const languages = navigator.languages
   if (languages.includes('ja')) {
-    location.pathname = '/ja/'
+    location.href += 'ja/'
   } else {
-    location.pathname = '/en/'
+    location.href += 'en/'
   }
 </script>
 
