@@ -13,7 +13,7 @@ const { src, alt } = Astro.props
 
 <Picture
   {src}
-  alt={alt}
+  {alt}
   widths={[750, 1170, 1290, src.width]}
   formats={['avif', 'webp']}
   loading="eager"

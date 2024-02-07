@@ -17,13 +17,14 @@ const enPath = Astro.url.href.replace('/ja/', '/en/')
 const jaPath = Astro.url.href.replace('/en/', '/ja/')
 const enTopPath = getRelativeLocaleUrl('en', '/')
 const jaTopPath = getRelativeLocaleUrl('ja', '/')
+const currentLocaleTopPath = getRelativeLocaleUrl(lang, '/')
 ---
 
 <header
   class="sticky top-0 z-50 w-full border-b border-slate-200 bg-background backdrop-blur supports-[backdrop-filter]:bg-background/60"
 >
   <div class="container flex h-16 max-w-5xl items-center justify-between">
-    <a href={`/${lang}/`}>
+    <a href={currentLocaleTopPath}>
       <Picture class="h-4 w-auto max-w-[180px] dark:hidden" src={GreyLogo} alt="Monstar lab" />
       <Picture class="hidden h-4 w-auto max-w-[180px] dark:block" src={YellowLogo} alt="Monstar lab" />
     </a>
