@@ -29,12 +29,13 @@ const description = convert((await marked.parseInline(post.body)).replace(/<[^>]
         class="mb-6 h-[200px] w-full rounded object-cover"
         transition:name=`hero-${post.slug}`
         formats={['avif', 'webp']}
-        widths={[200]}
+        widths={[720, 996]}
+        sizes={`(max-width: 430px) 332px, 360px`}
       />
     </a>
     <div class="font-light text-gray-500">{post.data.date.toLocaleDateString(lang, { dateStyle: 'long' })}</div>
     <a href={postUrl}>
-      <h4 class="my-4 text-2xl font-medium leading-normal">{post.data.title}</h4>
+      <h2 class="my-4 text-2xl font-medium leading-normal">{post.data.title}</h2>
     </a>
   </div>
   <div>
@@ -48,7 +49,7 @@ const description = convert((await marked.parseInline(post.body)).replace(/<[^>]
             width="28"
             height="28"
             densities={[2, 3]}
-            class="size-7 rounded-full"
+            class="size-7 rounded-full object-cover"
           />
         ))
       }
