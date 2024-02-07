@@ -1,6 +1,6 @@
 ---
 import type { ImageMetadata } from 'astro'
-import { Image } from 'astro:assets'
+import { Picture } from 'astro:assets'
 
 interface Props {
   src: ImageMetadata
@@ -11,12 +11,15 @@ interface Props {
 const { src, alt } = Astro.props
 ---
 
-<Image
+<Picture
   {src}
   alt={alt}
-  densities={[1, 2, 3]}
+  widths={[750, 860, src.width]}
   loading="eager"
   decoding="auto"
   quality="high"
   class="size-full object-cover"
+  pictureAttributes={{
+    class: 'size-full',
+  }}
 />
