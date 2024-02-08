@@ -1,5 +1,7 @@
 ---
 import '@/styles/globals.css'
+import { AstroFont } from 'astro-font'
+import { join } from 'node:path'
 
 interface Props {
   title: string
@@ -49,7 +51,8 @@ function getAlternateURL(locale: string) {
     src: url(/fonts/MonumentGroteskBold.woff2);
   }
 </style>
-<!-- <AstroFont
+
+<AstroFont
   config={[
     {
       name: 'MonumentGrotesk',
@@ -70,14 +73,14 @@ function getAlternateURL(locale: string) {
           path: join(process.cwd(), 'public', 'fonts', 'MonumentGroteskBold.woff2'),
         },
       ],
-      preload: true,
+      preload: false,
       display: 'swap',
       selector: 'body',
       fallback: 'sans-serif',
       cssVariable: 'MonumentGrotesk',
     },
   ]}
-/> -->
+/>
 <link rel="sitemap" href="/sitemap-index.xml" />
 
 {availableLocales.map((locale) => <link rel="alternate" href={getAlternateURL(locale)} hreflang={locale} />)}
