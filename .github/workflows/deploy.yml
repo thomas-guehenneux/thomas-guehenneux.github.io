@@ -54,7 +54,7 @@ jobs:
           mkdir -p node_modules/.astro/assets/ 
           cp dist/_astro/* node_modules/.astro/assets/
           rm -r dist
-          rm node_modules/.astro/assets/*(css|js)
+          rm node_modules/.astro/assets/*.(css|js)
 
       - name: Build
         run: bun run build --site "${{ steps.pages.outputs.origin }}"
