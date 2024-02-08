@@ -52,9 +52,8 @@ jobs:
         if: steps.cache.outputs.cache-hit == 'true'
         run: |
           mkdir -p node_modules/.astro/assets/ 
-          cp -r dist/_astro/*
+          cp dist/_astro/* node_modules/.astro/assets/
           rm -r dist
-          node_modules/.astro/assets/
           rm node_modules/.astro/assets/*(css|js)
 
       - name: Build
