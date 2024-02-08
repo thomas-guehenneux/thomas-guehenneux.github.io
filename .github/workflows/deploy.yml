@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   # Trigger the workflow every time you push to the `main` branch
-  # Using a different branch name? Replace `main` with your branch’s name
+  # Using a different branch name? Replace `main` with your branch's name
   push:
     branches: [ main ]
   # Allows you to run this workflow manually from the Actions tab on GitHub.
@@ -29,14 +29,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Restore cache
-        id: cache
         uses: actions/cache@v4
         with:
           path: |
-            node_modules
-          key: ${{ runner.os }}-astro-build-node_modules
+            dist/_astro
+          key: ${{ runner.os }}-astro-build-dist/_astro
           restore-keys: |
-            ${{ runner.os }}-astro-build-node_modules
+            ${{ runner.os }}-astro-build-dist/_astro
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
@@ -47,6 +46,10 @@ jobs:
 
       - name: Install dependencies
         run: bun install
+
+      - name: Copy already optimized images from /dist/_astro to /node_modules/.astro/assets if cache has been restored
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: mkdir -p node_modules/.astro/assets/ && cp -r dist/_astro/* node_modules/.astro/assets/ && rm node_modules/.astro/assets/*js && rm node_modules/.astro/assets/*css
 
       - name: Build
         run: bun run build --site "${{ steps.pages.outputs.origin }}"
