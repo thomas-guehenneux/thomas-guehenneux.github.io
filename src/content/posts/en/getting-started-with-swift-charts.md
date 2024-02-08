@@ -14,7 +14,7 @@ Apple introduced Swift Charts in iOS 16, and improved it in iOS 17, adding, amon
 
 
 ## Data
-First, let's find some data to plot. We'll be looking at weather data, and, for the sake of simplicity, we'll just load locally some JSON from [this file](/assets/posts/Getting-started-with-Swift-Charts/StationData.json). The JSON looks like this:
+First, let's find some data to plot. We'll be looking at weather data, and, for the sake of simplicity, we'll just load locally some JSON from [this file](@/assets/posts/getting-started-with-swift-charts/StationData.json). The JSON looks like this:
 
 ```json
 {

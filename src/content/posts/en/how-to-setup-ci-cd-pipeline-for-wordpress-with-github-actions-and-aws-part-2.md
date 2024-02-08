@@ -9,7 +9,7 @@ categories:
 date: 2023-12-14
 ---
 
-In the [previous article](/en/post/2023/01/02/How-to-setup-CI-CD-pipeline-for-WordPress-with-GitHub-Actions-and-AWS), we discussed how to set up a **"GitHub hosted runner"** with WordPress. Now, in this part, we will explore how to achieve the same deployment process using a **"Self-hosted runner"**
+In the [previous article](/en/posts/how-to-setup-ci-cd-pipeline-for-wordpress-with-github-actions-and-aws), we discussed how to set up a **"GitHub hosted runner"** with WordPress. Now, in this part, we will explore how to achieve the same deployment process using a **"Self-hosted runner"**
 
 ## GitHub Branches and Web Servers Architecture Recap:
 
