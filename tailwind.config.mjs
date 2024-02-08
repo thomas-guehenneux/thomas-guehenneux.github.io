@@ -2,7 +2,7 @@
 
 export default {
   darkMode: ['class'],
-  content: ['./src/**/*.{astro,html,js,jsx,md,mdx,ts,tsx}'],
+  content: ['./src/**/*.{astro,html,js,jsx,ts,tsx}'],
   plugins: [require('@tailwindcss/typography')],
   presets: [require('./ui.preset.js')],
   theme: {
