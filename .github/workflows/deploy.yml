@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   # Trigger the workflow every time you push to the `main` branch
-  # Using a different branch name? Replace `main` with your branch’s name
+  # Using a different branch name? Replace `main` with your branch's name
   push:
     branches: [ main ]
   # Allows you to run this workflow manually from the Actions tab on GitHub.
@@ -30,6 +30,7 @@ jobs:
 
       - name: Restore cache
         uses: actions/cache@v4
+        id: cache
         with:
           path: |
             dist
