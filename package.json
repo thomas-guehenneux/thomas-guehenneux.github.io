@@ -18,7 +18,7 @@
     "@kobalte/core": "0.12.1",
     "@types/html-to-text": "9.0.4",
     "@typescript-eslint/parser": "6.21.0",
-    "astro": "4.3.4",
+    "astro": "4.3.5",
     "astro-font": "0.0.77",
     "astro-sst": "2.40.1",
     "class-variance-authority": "0.7.0",
