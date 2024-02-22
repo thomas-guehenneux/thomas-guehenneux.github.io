@@ -34,9 +34,9 @@ jobs:
         with:
           path: |
             dist/_astro
-          key: ${{ runner.os }}-astro-build-dist/_astro
+          key: ${{ runner.os }}-astro-build-dist/_astro-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-astro-build-dist/_astro
+            ${{ runner.os }}-astro-build-dist/_astro-
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
