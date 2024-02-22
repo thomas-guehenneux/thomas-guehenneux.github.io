@@ -2,12 +2,12 @@ import mdx from '@astrojs/mdx'
 import sitemap from '@astrojs/sitemap'
 import solidJs from '@astrojs/solid-js'
 import tailwind from '@astrojs/tailwind'
-import { defineConfig } from 'astro/config'
+import { defineConfig, sharpImageService } from 'astro/config'
 import remarkCaptions from 'remark-captions'
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://localhost:4321/',
+  site: 'http://localhost:4321/',
   // trailingSlash: 'always',
   integrations: [
     solidJs(),
@@ -25,6 +25,11 @@ export default defineConfig({
     }),
     mdx(),
   ],
+  image: {
+    service: sharpImageService({
+      limitInputPixels: false,
+    }),
+  },
   markdown: {
     remarkPlugins: [remarkCaptions],
     extendDefaultPlugins: true,
@@ -41,4 +46,7 @@ export default defineConfig({
   // experimental: {
   //   contentCollectionCache: true,
   // },
+  // adapter: node({
+  //   mode: 'standalone',
+  // }),
 })

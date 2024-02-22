@@ -1,0 +1,222 @@
+---
+date: 2021-08-30
+title: Safe Navigation With Jetpack Compose
+tags: [android, jetpackcompose, kotlin, navigation, compose, safeargs]
+image: './header.webp'
+authors:
+  - roman-levinzon
+categories:
+  - android
+---
+
+Navigation is the key part of application development and Android is no exception. From Activities and Fragments transitions to Navigation Component and now, Navigation Component is available for Jetpack Compose! In this article, I would like to give a brief overview of how Jetpack Compose Navigation works, the problems I’ve faced, and my solution for it. Let's get started 🙂 !
+
+> **Disclaimer**
+> Since Jetpack Compose is still in its early stages and its Navigation APIs are still in alpha, in Monstarlab we don't yet fully rely on Jetpack Compose Navigation APIs when building Android applications. It doesn't mean that we don't play around with it however and that's where the idea for this article (and the library you will learn about) came from =).
+
+## Your First Route
+
+When using the original Navigation Component, we used XML to describe our navigation. There we could declare the arguments for our destination and transitions between them. In Compose world, of course, we use functions :)
+
+> *The example I will be using in the following section is a slightly modified example taken from the developer.android.com —* [_Navigating with Jetpack Compose_](https://developer.android.com/jetpack/compose/navigation) _. Make sure to visit it in case you need more information_
+
+We start by declaring a `NavHost` and then we can build our navigation graph by adding destinations using `composable()` function. It takes a path URI and a `@Composable` as the destination content
+
+```kotlin
+val navController = rememberNavController()
+NavHost(navController = navController, startDestination = "home") {
+    composable("home") { HomeScreen() }
+    composable("details") { DetailsScreen() }
+}
+```
+
+We’ve just set up our first destinations, lets add some action into our code by adding a transition from `"home`" to `"details"`. Compose Navigation Component makes it pretty easy as well, all we need to do is to tell our `navController` the path we want to navigate to
+
+```kotlin
+composable("home") {
+  HomeScreen(onClick: { navController.navigate("details") })
+}
+```
+
+### Arguments Support
+
+Let's imagine our Details route needs two arguments: an optional `Int` called **number** and a mandatory `String` called **id**. To support an ability to pass the arguments you need to do two things: adjust the path so that the Navigation Component knows that this route can accept arguments and describe the type of the arguments. This is how it looks like in our case
+
+```kotlin
+NavHost(navController = navController, startDestination = "home") {
+    composable("home") { HomeScreen(/*...*/) }
+    composable("details/{id}?number={number}",
+        arguments = listOf(
+          navArgument("id") { type = NavType.StringType }
+          navArgument("number") { type = NavType.IntType; defaultValue = 1 }
+        )
+    ) {...}}
+```
+
+Now for our detail transition, it won’t be enough to specify just the destination name like we used to — we need to provide arguments too, at least id anyway, as the optional param will be set to our default value.
+
+```kotlin
+navController.navigate("details/myFancyId?number=21")
+```
+
+The next step is to obtain the arguments. This can be done in multiple ways, either from the `NavBackStackEntry` or from the `SavedStateHandle` (this can be injected in our `ViewModel`)
+
+Note that in both cases, the value you receive can be `null`, so that must be addressed in some way.
+
+```kotlin
+/**
+* Get args from NavBackStackEntry
+**/
+composable(/** our details route **/ ) { backStackEntry ->
+    val id: String? = backStackEntry.arguments?.getString("id")
+    val number: Int? = backStackEntry.arguments?.getInt("number")
+    DetailsScreen(id, number)
+}
+
+/**
+* Get args from SavedStateHandle
+**/
+class DetailsScreenViewModel @Inject constructor(
+  savedStateHandle: SavedStateHandle
+) {
+  init {
+    val id: String? = savedStateHandle.get<String>("number")
+    val number: Int? = savedStateHandle.get<Int>("name")
+  }
+}
+```
+
+### The elephant in the room 🐘
+
+By now, you have probably noticed how much boilerplate code we have to just support these two routes and more importantly, how many hard-coded strings we have. Each navigation stage: declaration, arguments handling, and navigation actions, all use the path and parameters. Moreover, the arguments handling is very poor since we always need to be aware of the argument name and its type.
+
+To reduce this overhead you can wrap your destinations in a `sealed class` , for example, that will clean up the code for sure, but it won't solve all the problems.
+
+Remember the original Navigation Component? Well, it has `safeArgs` , a very useful plugin that generates code that allows handling arguments in a very clean and safe way. When I started to work with Jetpack Compose and its Navigation Component I immediately noticed that I miss this functionality, so I've decided to write one myself 👨‍💻 .
+
+## Introducing Safe Routing Library
+
+At its core, `safe-routing` is an annotation processing library that generates a code that will handle most of the boilerplate code and hardcoded strings and will provide a safe way to navigate between your composables and ease up arguments handling.
+
+### Installation
+
+in your project level `build.gradle`
+
+```kotlin
+allprojects {
+  repositories {
+    ...
+    maven { url 'https://jitpack.io' }
+  }
+}
+```
+
+And then in your app-level `build.gradle`
+
+```kotlin
+dependencies {
+    kapt("com.github.levinzonr.compose-safe-routing:compiler:2.1.0")
+    implementation("com.github.levinzonr.compose-safe-routing:core:2.1.0")
+}
+```
+
+Let's sync our project and apply some annotations to clean up our code. `safe-routing` provides two annotations for you to describe the routes. Meet `@Route` and `@RouteArg`
+
+- `@Route` is used to describe your Route, its constructor accepts a route name and the arguments for it
+- `@RouteArg` is used to describe the arguments for your Route, it accepts several parameters: the name, type, a flag to tell whether that argument is optional or not and a String representation of the default value. Note that the default value will only be used in case the argument is optional.
+
+Okay, now it's time to revisit our navigation code 🙂 .
+
+### Basic Setup
+
+To start, all we have to do is to apply the annotations for our two routes
+
+```kotlin
+@Composable
+@Route(name = "details", args = [
+    RouteArg("id", RouteArgType.StringType, false),
+    RouteArg("number", RouteArgType.IntType, true, defaultValue = 1.toString()),
+])
+fun DetailsScreen() {
+  /** your sweet composable code **/
+}
+
+@Composable
+@Route("home")
+fun HomeScreen() {
+  /** your sweet composable code **/
+}
+```
+
+That's it! After rebuilding the project, several new Kotlin files will be generated. Here is a quick description, but if you want to see what it actually looks like, in this particular example, check [this gist](https://gist.github.com/levinzonr/2acc21de9050da35d2929112310fc7b5#file-generatedexample-kt)
+
+- `Routes.kt` - This file contains all your routes descriptions that can be used to declare the destinations in our`NavGraphBuilder` using the `RouteSpec` interface. `RouteSpec` knows everything for successful navigation: the name of the route, its arguments, and how to obtain them.
+- `RoutesActions.kt` - This file contains the Nav Actions for your routes. Similar to `NavDirections` from `safeArg` plugin, it will build a proper path only accepting the arguments you provided in the annotations.
+- `*RouteArgs.kt` and `*RouteArgsFactory.kt` -> for every route that contains arguments an Argument Wrapper and Factory will be generated - `DetailsRouteArgs.kt` and `DetailsRouteArgsFactory` in our case.
+
+### Usage
+
+Now let's start using all this code that's been generated, starting with our `NavGraphBuilder`. `Routes.kt` now contains two objects `Details` and `Home` and they both extend `RouteSpec` interface, which gives us access to the following properties:
+
+- `route` - full path of the route including the arguments we specified
+- `navArgs` - list of the `NamedNavArgument` to fully describe our arguments
+- `argsFactory` - an object that will help us to obtain our arguments from various places
+
+Let's put them to good use 🙂 . Here we are using `route` and `navArgs` properties to describe your route, and `RouteArgsFactory` to obtain the arguments that are being passed
+
+```kotlin
+NavHost(
+  navController = navController,
+  startDestination = Routes.home.route
+) {
+  composable(route = Routes.Home.route) { HomeScreen() }
+  composable(routes = Routes.Details.route, arguments = Routes.Details.navArgs) {
+    val args = DetailsRouteArgsFactory.fromBackStackEntry(it)
+    DetailsScreen(args)
+  }
+}
+```
+
+But since we are dealing with the RouteSpec interface we can make this declaration even shorter!. SafeRoute lib provides `composable` extension functions that accept`RouteSpec` as the main parameter. Another one is `composableWithArgs` that will handle arguments retrieving for you.
+
+```kotlin
+NavHost(
+  navController = navController,
+  startDestination = Routes.home.route
+) {
+  composable(Routes.Home) { HomeScreen() }
+  composableWithArgs(Routes.Details) { entry, args -> DetailsScreen(args)}
+
+}
+```
+
+Our only transition also needs some love, lets use our `RoutesActions.kt`
+
+```kotlin
+composable(Routes.Home) {
+  HomeScreen(
+    onClick = {
+      navController.navigate(RoutesActions.toDetails(id = "MyFancyId", number = 0))
+      // navController.navigate(RoutesActions.toDetails("myId")) in case we don't want to pass the number
+    }
+  )
+}
+```
+
+Bonus, in case you are wondering about how to pass the arguments directly to the ViewModel
+
+```kotlin
+class DetailsScreenViewModel @Inject constructor(savedStateHandle: SavedStateHandle) {
+  init {
+    val args = DetailsRouteArgsFactory.fromSavedStateHandle(savedStateHandle)
+  }
+}
+```
+
+And that's it!
+
+## Afterword
+
+Thank you for your time! I really enjoyed making this tiny little library and I hope you can find it useful! I will really appreciate any feedback and suggestions so feel free to reach out to me 🙂 . SafeRoute already had quite a few updates, and it now [supports](https://github.com/levinzonr/compose-safe-routing/blob/master/RELEASE_NOTES.md/#210-release-notes) Animations and Material Destinations from the [Accompanist](https://github.com/google/accompanist) library Here is the [GitHub page](https://github.com/levinzonr/compose-safe-routing) for those of you who want to know more.
+
+_Article photo by [Siyuan](https://unsplash.com/@jsycra?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) on [Unsplash](https://unsplash.com/photos/RyUWQxgN6RI?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)_

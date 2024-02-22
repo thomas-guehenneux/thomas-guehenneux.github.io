@@ -2,17 +2,20 @@
 import homeImage from '@/assets/home.webp'
 import CategoryNav from '@/components/CategoryNav.astro'
 import ThePagination from '@/components/ThePagination.astro'
+import { langs } from '@/constants'
 import Layout from '@/layouts/Layout.astro'
 import type { GetStaticPathsOptions } from 'astro'
 import { getCollection } from 'astro:content'
 import Hero from '~/components/Hero.astro'
 import PostCard from '~/components/PostCard.astro'
+import type { Locales } from '~/types/i18n'
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
-  const langs = ['ja', 'en']
-  const allPosts = await getCollection('posts')
+  const allPosts = (await getCollection('posts')).sort((a, b) => {
+    return new Date(a.data.date) > new Date(b.data.date) ? -1 : 1
+  })
   return langs.flatMap((lang) => {
-    const filteredPosts = allPosts.filter((post) => post.slug.startsWith(lang))
+    const filteredPosts = allPosts.filter((post) => post.slug.startsWith(lang)).slice(1)
 
     return paginate(filteredPosts, {
       params: { lang },
@@ -22,7 +25,7 @@ export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
 }
 
 const { page } = Astro.props
-const { lang } = Astro.params as { lang: 'ja' | 'en' }
+const { lang } = Astro.params as { lang: Locales }
 
 // Get all categories with posts in current locale
 const categories = await getCollection('posts', ({ slug }) => {
@@ -36,9 +39,15 @@ const categories = await getCollection('posts', ({ slug }) => {
     return categorySlugs.includes(slug)
   })
 })
+
+const firstPost = (await getCollection('posts'))
+  .sort((a, b) => {
+    return new Date(a.data.date) > new Date(b.data.date) ? -1 : 1
+  })
+  .filter((post) => post.slug.startsWith(lang))[0]
 ---
 
-<Layout title="TO_SET" description="TO_SET" availableLocales={['ja', 'en']} lang={lang as 'ja' | 'en'}>
+<Layout title="TO_SET" description="TO_SET" availableLocales={langs} {lang}>
   <main>
     <div class="relative">
       <div
@@ -57,6 +66,7 @@ const categories = await getCollection('posts', ({ slug }) => {
     </div>
     <div class="container max-w-7xl">
       <CategoryNav {categories} {lang} class="pb-2.5 pt-12" />
+      <PostCard post={firstPost} {lang} />
       <ul class="grid grid-cols-1 gap-x-6 gap-y-8 py-12 md:grid-cols-3">
         {
           page.data.map((post) => (

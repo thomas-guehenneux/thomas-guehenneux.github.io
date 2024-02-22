@@ -1,0 +1,262 @@
+---
+date: 2019-08-15
+title: Android navigation with MVVM and State made easy
+tags: [development, blog, android, navigation, lifecycle, state, mvvm]
+image: './header.webp'
+authors:
+  - vladimir-ostaci
+categories:
+  - android
+---
+
+Working on a large app with a large number of screens which we organized by feature (Messaging, Settings, Profile, etc.) made me test the single activity - multiple fragments approach by using the Navigation component. This technique has the advantage of not having to deal with activities and only define all the UI in the Fragments. In specific cases where we have to adapt the screen to more complex layouts, Tablet for example, we can define a parent Fragment and switch between the nested fragments based on device screen size and other criteria.
+
+## About the structure
+
+We are using one `MainActivity` class which will hold our `NavHostFragment` and manage all the navigation.
+
+_activity_main.xml_
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_host_fragment"
+    android:name="androidx.navigation.fragment.NavHostFragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:defaultNavHost="true"
+    app:navGraph="@navigation/main_nav_graph"
+    tools:context=".ui.MainActivity" />
+```
+
+So let's take a look at our `main_nav_graph` which is the main graph containing all our [nested graphs](https://developer.android.com/guide/navigation/navigation-nested-graphs), they will appear as child <navigation> elements.
+`main_nav_graph.xml`
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainNavGraph"
+    app:startDestination="@id/loginNavGraph">
+
+    <include app:graph="@navigation/login_nav_graph" />
+
+    <include app:graph="@navigation/settings_nav_graph" />
+
+</navigation>
+```
+
+![Main graph preview](main_graph_preview.webp)
+
+We have two nested graphs: `login_nav_graph` and `settings_nav_graph` which we use to separate two unrelated parts of our UI: Login and Settings. We can decide when to define a separate graph based on the amount of independent sections. For example the Settings section usually contains multiple screens like Notifications, Privacy, Account which can be naturally included into the same Settings graph.
+
+Let's explore the Login graph.
+
+_login_nav_graph.xml_
+
+```xml
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/loginNavGraph"
+    app:startDestination="@id/credentialsFragment">
+
+    <fragment
+        android:id="@+id/credentialsFragment"
+        android:name="com.example.navigation_mvvm.ui.login.credentials.CredentialsFragment"
+        android:label="CredentialsFragment"
+        tools:layout="@layout/credentials_fragment">
+        <action
+            android:id="@+id/action_credentialsFragment_to_termsConditionsFragment"
+            app:destination="@id/termsConditionsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/termsConditionsFragment"
+        android:name="com.example.navigation_mvvm.ui.login.terms.TermsConditionsFragment"
+        android:label="TermsConditionsFragment"
+        tools:layout="@layout/terms_conditions_fragment" />
+
+</navigation>
+```
+
+For simplicity it only contains two fragments `CredentialsFragment` and `TermsConditionsFragment` with the former also being the start destination of this graph. Essentially what that means is that in case you navigate to Login graph, Credentials fragment will be the first screen to be shown. Check [Navigation - Getting started](https://developer.android.com/guide/navigation/navigation-getting-started) if you're unfamiliar with these concepts.
+
+What we decided to do is to create some utility functions around state and navigation so it can be managed directly in the ViewModel instead of passing the control back to the Fragment. To achieve this we make use of two very simple base classes `BaseFragment` and `BaseViewModelImpl`
+
+_BaseFragment.kt_
+
+```kotlin
+abstract class BaseFragment<VS : BaseViewState, VM : BaseViewModel<VS>> : Fragment(), LifecycleOwner {
+
+    var viewModelFactory: ViewModelProvider.Factory = SharedViewModelFactory()
+
+    protected abstract val viewModel: VM
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        requireActivity()
+            .onBackPressedDispatcher
+            .addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    onBackPressed()
+                }
+            })
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        observeState(::onStateChange)
+        observeNavigationEvent()
+    }
+
+    private fun observeState(callback: (state: VS) -> Unit) {
+        val observer = Observer<VS> { state -> callback.invoke(state) }
+        viewModel.viewState.observe(viewLifecycleOwner, observer)
+        observer.onChanged(viewModel.state)     // Deliver initial state because initial state was initialized when there wasn't an observer observing state live data.
+    }
+
+    /** Implement this in subclasses to listen to state changes */
+    protected abstract fun onStateChange(state: VS)
+
+    private fun observeNavigationEvent() {
+        viewModel.navigationEvent.observe(viewLifecycleOwner, Observer { navEvent ->
+            val consume = navEvent?.consume()
+            consume?.invoke(findNavController())
+        })
+    }
+
+    protected fun onBackPressed() {
+        viewModel.onBackPressed()
+        onReturnToPreviousScreen()
+    }
+
+    protected open fun onReturnToPreviousScreen() {
+        findNavController().popBackStack()
+    }
+}
+```
+
+In `BaseFragment` we just observe our **state** and **navigation events**. All we do is listen to back button events and forward them to `onBackPressed` so we can track them in the ViewModel. We can override `onReturnToPreviousScreen` in any fragment and change the back button press event behaviour if needed. I skipped the part related to the creation of ViewModel (full source code included).
+
+_BaseViewModelImpl.kt_
+
+```kotlin
+abstract class BaseViewModelImpl<VS : BaseViewState> : ViewModel(), BaseViewModel<VS> {
+
+    override val viewState: MediatorLiveData<VS> = MediatorLiveData()
+    override val navigationEvent: MutableLiveData<SingleEvent<NavController.() -> Any>> = MutableLiveData()
+
+    override var state: VS
+        get() = viewState.value ?: initialState
+        set(value) = viewState.setValue(value)  // Sets the value synchronously
+
+    override var stateAsync: VS
+        get() = state
+        set(value) = viewState.postValue(value)  // Sets the value asynchronously
+
+    override fun navigateTo(route: RouteSection, args: Bundle?) {
+        withNavController { navigate(route.graph, args, defaultNavOptions) }
+    }
+
+    override fun navigateTo(route: RouteDestination, args: Bundle?, clearStack: Boolean) {
+        when {
+            route is RouteDestination.Back -> withNavController { popBackStack() }
+            clearStack -> withNavController { popBackStack(route.destination, false) }
+            else -> withNavController { navigate(route.destination, args, defaultNavOptions) }
+        }
+    }
+
+    protected fun withNavController(block: NavController.() -> Any) {
+        navigationEvent.postValue(SingleEvent(block))
+    }
+}
+```
+
+The important part to note here is the **state** property which gives access to the ViewModel state and **navigationEvent** which is used to provide one time navigation events. Thanks to [SingleEvent](https://medium.com/androiddevelopers/livedata-with-snackbar-navigation-and-other-events-the-singleliveevent-case-ac2622673150) it means that as soon as we consume the navigation event it will be null and we will avoid issues as receiving the same event when the Fragment is resumed for example.
+
+To navigate to a different screen within the same graph you can call `navigateTo` and pass the RouteDestination which is just a more convenient way to specify the destination instead of typing _R.id.fragmentName_. It helps with finding usages and debugging but if you prefer navigating by specifying the resource id then you can use `withNavController` directly from the ViewModel like this:
+
+```kotlin
+withNavController { navigate(R.id.notificationsFragment) }
+```
+
+Now we will see a real example of using the navigation and state utilities in the Credentials fragment.
+
+```kotlin
+class CredentialsFragment : BaseFragment<CredentialsState, CredentialsViewModel>() {
+
+    override val viewModel: CredentialsViewModel by lazyViewModel()
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.credentials_fragment, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        submitCredentialsBtn.setOnClickListener { viewModel.onCredentialsSubmitted() }
+        continueBtn.setOnClickListener { viewModel.onContinueClick() }
+    }
+
+    override fun onStateChange(state: CredentialsState) {
+        continueBtn.isEnabled = state.credentialsValidated
+    }
+}
+```
+
+The only thing different from an usual definition of a Fragment is the `onStateChange()` function which is called as soon as the ViewModel state changes. So if the user submits the credentials we trigger `viewModel.onCredentialsSubmitted()` which will change the state and set `credentialsValidated = true`. and enable the `continueBtn` in this case.
+
+```kotlin
+class CredentialsViewModel : BaseViewModelImpl<CredentialsState>() {
+
+    override val initialState = CredentialsState()
+
+    fun onCredentialsSubmitted() {
+        // Validate credentials
+        state = state.copy(credentialsValidated = true)
+    }
+
+    fun onContinueClick() {
+        navigateTo(RouteDestination.Login.TermsConditions)
+    }
+}
+```
+
+We define the state as a simple Data class so we can create a new state by copying the existing one and only changing some properties.
+
+```kotlin
+data class CredentialsState(val credentialsValidated: Boolean = false) : BaseViewState
+```
+
+As I mentioned earlier the `RouteDestination` is mainly used for convenience and you can use any structure you want for it. In our case it looks like this:
+
+```kotlin
+sealed class RouteDestination(@IdRes open val destination: Int) {
+
+    object Back : RouteDestination(-1)
+
+    sealed class Login(@IdRes override val destination: Int) : RouteDestination(destination) {
+
+        object Credentials : Login(R.id.credentialsFragment)
+        object TermsConditions : Login(R.id.termsConditionsFragment)
+    }
+
+    sealed class Settings(@IdRes override val destination: Int) : RouteDestination(destination) {
+
+        object Profile : Settings(R.id.profileFragment)
+        object Notifications : Settings(R.id.notificationsFragment)
+    }
+}
+```
+
+## Final words
+
+Using this new approach is easy and adds some advantages like handling the navigation directly from ViewModel. By using the `RouteDestination` we can redirect the user to different parts of the app without accessing specific UI related resources, keeping the ViewModel free from references to navigation resources and having a single immutable state which is much easier to debug in case of something not working as expected.
+
+Full source code available at [https://github.com/vladostaci/NavigationMVVM](https://github.com/vladostaci/NavigationMVVM)

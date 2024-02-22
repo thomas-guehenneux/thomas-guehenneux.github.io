@@ -1,0 +1,109 @@
+---
+date: 2022-02-03
+title: What you need to know when using Firestore
+tags: [firestore]
+image: './header.webp'
+authors:
+  - noboru-ishikura
+---
+
+Some years ago, when storing data, we mainly used RDBMS (Relational DataBase Management System) such as MySQL and PostgreSQL. But recently, we started using [Firestore](https://firebase.google.com/products/firestore) more. Although the role of storing data is the same, the usage and design concept of Firestore is very different from RDBMS.
+
+In this article, we will check the limitations of Firestore, and what are the differences from RDB.
+
+## No aggregate function
+
+In RDB, it is relatively easy to perform `COUNT(*)` or `SUM(amount)` for hundreds or thousands of records.  
+However, this is not practical with Firestore.
+
+For example, suppose we have a screen that displays a list of 20 slips, each of which has 10 details attached to it.  
+If we want to display the "total amount" in the list, we can get the result quickly in RDB by doing `SUM` in a subquery.
+
+On the other hand, if we want to do the same thing with Firestore, we need to load 200 documents on the client-side and aggregate them as a "process". This causes a problem in terms of cost and performance.  
+In such a case, we update the "total amount" of the slip data when adding or updating the details data, and refer only to the slip data when displaying it on the screen.
+
+For other constraints as well, it is necessary to think in terms of creating and updating data with reading situations in mind at the time of writing data.
+
+## Not good at searching
+
+To search with two or more conditions, we need to create an index.  
+In addition, some queries cannot be executed even if any indexes are created.
+
+> In a compound query, range (`<`, `<=`, `>`, `>=`) and not equals (`!=`, `not-in`) comparisons must all filter on the same field.
+
+[Perform simple and compound queries in Cloud Firestore | Firebase Documentation](https://firebase.google.cn/docs/firestore/query-data/queries?hl=en)
+
+For example, we cannot do a range search on two columns, such as "Created after A, modified after B". Also, we cannot do a range search and sort with two different columns.
+
+We need a workaround, such as changing the screen specification or using a different search column to perform an exact match search.  
+
+For example, in the above example, if we can change the specification to "search data that was created in a specific month and updated after B", we add a new column that is the year-month of created (the string "yyyyMM"). Therefore we can change one of the conditions to an exact match.
+
+## No full text search
+
+If we want to do a full-text search, such as searching for posts that contain a specific string, it is common to use an external service such as Algolia.
+
+> Cloud Firestore doesn't support native indexing or search for text fields in documents.
+> Additionally, downloading an entire collection to search for fields client-side isn't practical.
+
+[Full-text search | Firebase Documentation](https://firebase.google.cn/docs/firestore/solutions/search?hl=en)
+
+We can also use Firebase Extensions called "Search with Algolia" to seamlessly sync our Firestore data to Algolia.
+
+## No "offset"
+
+In RDBMS, paging can perform by specifying "offset".  
+In Firestore, "limit" can be specified, but "offset" cannot be specified.  
+Therefore, it is difficult to support specifications such as loading by page number.
+
+On the other hand, loading continuous data such as infinite scrolling can be easy.
+
+## Cannot update or delete multiple data by conditions
+
+It is not possible to update all the flags of the data that match the condition or delete all the related data when the parent data was deleted.  
+It is necessary to retrieve the data by conditions and then update or delete them individually.
+
+There are functions such as transactions and batches, it is possible to update and delete data atomically.  
+However, only 500 writes can be done in one transaction.
+
+> Maximum number of writes that can be passed to a Commit operation or performed in a transaction 500
+
+[Usage and limits | Firebase Documentation](https://firebase.google.com/docs/firestore/quotas?hl=en#writes_and_transactions)
+
+## Cannot apply security rule to per-field
+
+When using RDBs, an API is usually implemented between the client and the DB.  
+Therefore, it is common to implement read restrictions as "processes" on the API side.
+
+In the case of Firestore, read restrictions are defined as a security rule, it is common for clients to refer directly to Firestore.
+
+By setting the security rule, various restrictions can be applied to each collection.  
+However, it is not possible to set restrictions such as "only certain fields can be viewed" within a single data collection.  
+Therefore, if there are two types of user information, one for public and the other for private, it is recommended to manage them in separate collections.
+
+## Cannot write frequently
+
+> Maximum sustained write rate to a document 1 per second
+> Sustaining a write rate above once per second increases latency and causes contention errors. This is not a hard limit, and you can surpass the limit in short bursts.
+
+[Usage and limits | Firebase Documentation](https://firebase.google.com/docs/firestore/quotas?hl=en#soft_limits)
+
+As mentioned earlier, aggregation by queries is not possible, so to display the number of "likes" on a post, it needs to be counted up as an integer.  
+However, "likes" may be done for a single post from many users, it is likely to be limited to the soft limit above.  
+An answer is available on the official page.
+
+> To support more frequent counter updates, create a distributed counter.
+> Each counter is a document with a subcollection of "shards," and the value of the counter is the sum of the value of the shards.
+
+[Distributed counters | Firebase Documentation](https://firebase.google.com/docs/firestore/solutions/counters?hl=en)
+
+Simply put, by storing the data in 10 counter documents, the soft limit is reduced to about 1/10. And by summing them when loading, the loading cost is reduced.
+
+## Summary
+
+Firestore has a lot of advantages, such as relatively low cost of operation and easy implementation of real-time change detection.
+
+However, the direction it aims to take and the situations in which it excels are different from those of the RDBMSs.  
+I think it is important to understand the limitations and use them in the right place.
+
+_[Article Photo by Jan Antonin Kolar](https://unsplash.com/photos/lRoX0shwjUQ)_

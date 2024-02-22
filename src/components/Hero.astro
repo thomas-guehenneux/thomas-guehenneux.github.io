@@ -15,7 +15,8 @@ const { src, alt } = Astro.props
   {src}
   {alt}
   widths={[750, 1170, 1290, src.width]}
-  formats={['avif', 'webp']}
+  formats={['avif']}
+  fallbackFormat={'webp'}
   loading="eager"
   decoding="auto"
   class="size-full object-cover"

@@ -1,0 +1,90 @@
+---
+date: 2020-06-26
+title: Introducing App Clips
+tags: [ios, app clips, instant apps, wwdc20]
+image: './header.webp'
+authors:
+  - tom-mueller
+categories:
+  - ios
+---
+
+Apple introduced a new feature called app clips at this year's WWDC. It is coming to iOS 14 this fall. App clips offer a promising new way for businesses to increase the discoverability of their apps and services while at the same time eliminating the need to install a full app. This concept may sound familiar to Android developers who have had access to [Instant Apps](https://developer.android.com/topic/google-play-instant) since 2017.
+
+App clips are segments of your app that should always aim at focusing on a clearly defined use-case, such as ordering a burrito at your business's point of sale. As such, you should refrain from using top-level navigation concepts like tab bars or sidebars. Do not attempt to replicate the full feature set of your app but rather focus on the task at hand. A single app clip can contain multiple experiences, and thus handle multiple use-cases (such as ordering online or picking up an order at a bricks and mortar store) by defining dedicated deep link URLs which are passed to the app clip at launch as part of an `NSUserActivity`.
+
+App clips are ephemeral in nature and not added to the user's home screen. An app clip and all its data is removed from the user's device after a certain period of inactivity (likely a few days) which gets extended each time the clip is launched.
+
+### Quick Facts
+
+- Maximum 10 MB after app thinning
+- Can share data with containing app using app group containers
+- Not added to home screen, not backed up
+- Deleted from device after period of inactivity
+- Can be built using either UIKit or the new SwiftUI app lifecycle
+
+### Technical Implementation
+
+App clips are developed in the context of you app's main Xcode project. As such, new app clip releases have to be bundled with updates of its containing app and cannot be submitted for review independently. Once published on the App Store, clips are separate binaries that are downloaded on-demand.
+
+Similar to other types of extensions, such as WatchKit or Share extensions, you start by adding a new target to your Xcode project.
+However, unlike other extensions, app clips have full access to all frameworks the iOS SDK has to offer. Just know that certain features concerning the user's privacy, such as obtaining health data, won't work.
+Code, assets catalogs and other types of resources can be shared between your app clip and its containing app simply by adding them to both targets. If you intent to store data you want to migrate to your containing app once the user decides to install it, you can do so by creating an app group and storing the data in a shared app group container. If you have developed any kind of app extension before, you should be familiar with this concept.
+
+App cards contain a link to your app on the App Store. You may, however, also offer an opportunity to download your app from within your app clip using `StoreKit's` new [SKOverlay](https://developer.apple.com/documentation/storekit/skoverlay). App clips and full apps are mutually exclusive. Once the full app has been installed, iOS will give you an opportunity to migrate your data before your app clip is deleted. From this point on, links will launch your full app rather than your app clip. As such, you have to ensure your app can handle the same deep links and offer the same experiences as your app clip.
+
+App clips can only be launched via app clip URLs. Universal links and custom URL schemes are not supported. If your app clip requires user authentication to function properly, consider using [ASWebAuthenticationSession](https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession) or [ASAuthorizationController](https://developer.apple.com/documentation/authenticationservices/asauthorizationcontroller) to facilitate 3rd party single sign-on or set up [Sign in with Apple](https://developer.apple.com/sign-in-with-apple/). To customize the experience, e.g. for different branches of your business, specify a prefix URL and pass branch-specific information as a path or query parameter.
+
+### Testing
+
+You can test proper handling of deep links before submitting your app clip for review by specifying the environment variable `_XCAppClipURL` in your clip's Run scheme and passing the URL you want to handle.
+
+### App Clip Cards
+
+App clip cards, which are part of an app clip experience and facilitate the entry point to your app clip, are set up and configured using [App Store Connect](https://appstoreconnect.apple.com). Apple aims at offering a streamlined and recognizable experience for all app clip cards. As such, the general visual appearance is largely predefined. You can customize your cards by specifying a background image, a subtitle for the card, and a verb for the CTA that launches your app clip. For further information on image sizes, character limits and other recommendations, refer to Apple's [interface guidelines](https://developer.apple.com/design/human-interface-guidelines/app-clips/overview/).
+
+![](app-cards-clips.webp)
+_Image source: [Apple](https://developer.apple.com/documentation/app_clips)_
+
+### Ways to Discover
+
+##### App Clip Codes
+
+Later this year, Apple is set to launch dedicated app clip codes that are somewhat reminiscent of Facebook's [Messenger Codes](https://developers.facebook.com/docs/messenger-platform/discovery/messenger-codes/). App clip codes can for instance be placed at your point of sale. Users can launch app clip experiences by either scanning your code with their iPhone's camera or by simply tapping it as it also contains an NFC tag.
+
+##### QR-Codes and NFC Tags
+
+Aside from Apple's proprietary codes, you may as well use regular QR-codes and NFC tags as linking works by simply registering and encoding URLs associated with your app clip experience.
+
+![](nfc.gif)
+_Image source: [Apple](https://developer.apple.com/videos/play/wwdc2020/10146/)_
+
+##### Website Banners
+
+Much like existing smart app banners, you can enable support for launching app clips by adding the meta tag `apple-itunes-app` containing your clip's bundle identifier to your website's HTML. Remember to also add your App ID, so iOS versions prior to 14 can fall back to showing your app's App Store link.
+
+##### Messages
+
+One of the many new features added to Messages this year is the option to share app clips directly in a conversation.
+Links can be shared by enabling sharing from within your app clip.
+
+##### Business Details in Maps
+
+You can add an app clip CTA to your business details on Apple Maps by adding the corresponding information to [Apple Maps Connect](https://mapsconnect.apple.com/). Users will be able to discover and launch your app clip directly from within Maps.
+
+### Recommended WWDC Sessions
+
+- [Explore app clips](https://developer.apple.com/videos/play/wwdc2020/10174/)
+- [Configure and link your app clips](https://developer.apple.com/videos/play/wwdc2020/10146/)
+- [Design great app clips](https://developer.apple.com/videos/play/wwdc2020/10172/)
+
+### Resources and Further Reading
+
+- [Introducing app clips](https://developer.apple.com/app-clips/)
+- [Developer guidelines](https://developer.apple.com/documentation/app_clips)
+- [Design guidelines](https://developer.apple.com/design/human-interface-guidelines/app-clips/overview/)
+- [Apple Developer - SKOverlay](https://developer.apple.com/documentation/storekit/skoverlay)
+- [Apple Developer - ASAuthorizationController](https://developer.apple.com/documentation/authenticationservices/asauthorizationcontroller)
+- [Apple Developer - ASWebAuthenticationSession](https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession)
+
+_Article Photo by [Apple](https://developer.apple.com/app-clips/images/hero-lockup-large.png)_

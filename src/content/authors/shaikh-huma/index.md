@@ -1,0 +1,8 @@
+---
+name: Shaikh Huma
+occupation: Flutter Developer
+about: Flutter Developer based in Tokyo,Japan. Flutter makes my heart flutter 
+image: './shaikh-huma.webp'
+github: huma11farheen
+slack: D03H8C91LKD
+---

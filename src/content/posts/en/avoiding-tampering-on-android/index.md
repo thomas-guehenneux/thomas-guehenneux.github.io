@@ -1,0 +1,339 @@
+---
+date: 2020-03-06
+title: Avoiding tampering on Android
+tags: [android, development, security, tampering]
+image: './header.webp'
+authors:
+  - tiago-araujo
+  - markus-rubey
+  - roman-levinzon
+categories:
+  - android
+---
+
+It's important to keep user data safe. Like any software, Android can be
+target of attacks to access valuable data and even though no software
+is perfectly safe, as developers we should always follow the [security best practices](https://developer.android.com/topic/security/best-practices)
+and do what is in our reach to keep data safe.
+
+Here are some measures that can help you make your development safer.
+We don't grant the perfect safety of the methods here, so if you're dealing
+with sensitive data, we recommend that you take it at your own will and you
+should still validate all the measures.
+
+## Debugger Check
+
+Here we have two options: we can check if the app is set as debuggable
+and verify if there's any debugger attached. This is a good check for the
+release version where usually we obfuscate the app ([you're doing it, right!?](https://developer.android.com/studio/build/shrink-code))
+and we shouldn't be able to see debug info like logs, for example.
+
+To verify if the app has the debuggable flag active, you can do the following:
+
+```kotlin
+val isDebuggable = applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+```
+
+And to verify if there's any debugger attached at the moment, you can use
+this code:
+
+```kotlin
+val isDebuggerAttached = Debug.isDebuggerConnected() || Debug.waitingForDebugger()
+```
+
+If you're using Kotlin you can use the following to Extension to easy your
+life to verify if there's some debugger running.
+
+```kotlin
+fun runSensitiveCalculation() = guardDebugger {
+    // No debugger attached
+    // TODO: Calculation
+}
+
+/**
+ * Executes [function] only if no debugger is attached.
+ */
+fun guardDebugger(function: (() -> Unit)) {
+    val isDebuggerAttached = Debug.isDebuggerConnected() || Debug.waitingForDebugger()
+    if (!isDebuggerAttached) {
+        function.invoke()
+    }
+}
+```
+
+## File / App Tampering
+
+A malicious user can try to modify some parts of your app or an external
+resources you may have to use, like some external file your need to download.
+We can try to mitigate these tamperings verifying the file integrity and/or
+the app signature as well as the install origin of the app to confirm that it
+wasn't installed from a not trustable source.
+
+### File Integrity
+
+A common and safe way to verify if some file is altered compared to the
+original is to validate its checksum. If you have to download files and
+have an original checksum to compare the result, you can use Android's
+`MessageDigest` class to do so. Just try to avoid weaker algorithms like
+`MD5` or `SHA-1` since those have been exploited and formally deprecated
+by the National Institute of Standards and Technology (NIST).
+
+The Following code shows how to get a `SHA-256` checksum of a File's `InputStream`:
+
+```kotlin
+fun generateChecksum(inputStream: InputStream, algorithm : String = "SHA-256"): String? = try {
+    val digest: MessageDigest = MessageDigest.getInstance(algorithm)
+    val hash: ByteArray = digest.digest(inputStream.readBytes())
+    hash.toHexString()
+} catch (exception: NoSuchAlgorithmException) {
+    exception.printStackTrace()
+    null
+}
+
+fun ByteArray.toHexString() : String{
+    val hexChars = "0123456789ABCDEF".toCharArray()
+    val result = StringBuffer()
+
+    forEach {
+        val octet = it.toInt()
+        val firstIndex = (octet and 0xF0).ushr(4)
+        val secondIndex = octet and 0x0F
+        result.append(hexChars[firstIndex])
+        result.append(hexChars[secondIndex])
+    }
+
+    return result.toString()
+}
+```
+
+### App signature
+
+Developers must sign applications with their private key before the app
+can be installed on user devices. The resulting app signature will be
+broken if the APK is altered in any way.
+
+Use the following class to verify your app signature at runtime:
+
+```kotlin
+object AppSignatureValidator {
+
+    enum class Result {
+        VALID,
+        INVALID,
+        UNKNOWN
+    }
+
+    // TODO: Set value for expectedSignature
+    //  - Run app with AppSignatureValidator.validate()
+    //  - Check logs for 'EXPECTED_SIGNATURE' and set value
+    //  - Remove line Log.d("EXPECTED_SIGNATURE",...
+    private const val expectedSignature = "" // TODO: SET!
+
+    fun validate(context: Context): Result {
+        context.getAppSignature()?.string()?.let { currentSignature ->
+
+            Log.d("EXPECTED_SIGNATURE", currentSignature) // TODO: REMOVE!
+
+            return if (currentSignature == expectedSignature) {
+                Result.VALID
+            } else {
+                Result.INVALID
+            }
+        }
+        return Result.UNKNOWN
+    }
+
+    private fun Context.getAppSignature(): Signature? = if (Build.VERSION.SDK_INT < 28) {
+        packageManager.getPackageInfo(
+            packageName,
+            PackageManager.GET_SIGNATURES
+        ).signatures.firstOrNull()
+    } else {
+        packageManager.getPackageInfo(
+            packageName,
+            PackageManager.GET_SIGNING_CERTIFICATES
+        ).signingInfo.apkContentsSigners.firstOrNull()
+    }
+
+    private fun Signature.string(): String? = try {
+        val signatureBytes = toByteArray()
+        val digest = MessageDigest.getInstance("SHA")
+        val hash = digest.digest(signatureBytes)
+        Base64.encodeToString(hash, Base64.NO_WRAP)
+    } catch (exception: Exception) {
+        null
+    }
+}
+```
+
+Notice that it would be a good thing to obfuscate your `expectedSignature`
+value.
+
+### App install origin
+
+You can also verify the origin of the installation so you just let your
+app run if installed from trustable sources::
+
+```kotlin
+enum class Installer(val id: String) {
+    GOOGLE_PLAY_STORE(id = "com.android.vending"),
+    AMAZON_APP_STORE(id = "com.amazon.venezia")
+}
+
+fun Context.verifyInstaller(installer: Installer): Boolean {
+    return packageManager.getInstallerPackageName(packageName).startsWith(installer.id)
+}
+```
+
+## SafetyNet
+
+The [SafetyNet](https://developer.android.com/training/safetynet) is a tool from Google to help developers to spot tampering
+attempts and take actions to avoid it (like not letting the user to run
+the app). This can help to detect users with a rooted device that could
+try to intercept or modify sensible data in your app.
+
+### Setting up
+
+To use SafetyNet, you need Google Project API Token. Here's a quick
+overview of how you can get one:
+
+1. Go to https://console.developers.google.com/apis/library
+2. Search for and select the Android Device Verification. The Android Device Verification API dashboard screen appears.
+3. If the API isn't already enabled, click Enable.
+4. If the Create credentials button appears, click on it to generate an API key. Otherwise, click the All API credentials drop-down list, then select the API key that's associated with your project that has enabled the Android Device Verification API.
+5. In the sidebar on the left, click Credentials. Copy the API key that appears.
+
+It's recommended that the API key is not in plain text inside the apk, as
+a compromised device can have access to this.
+
+After doing this, you can add the dependency on your gradle:
+
+```groovy
+implementation 'com.google.android.gms:play-services-safetynet:17.0.0'
+```
+
+### Verifying Google Services Availability
+
+First, you should verify if the user has a compatible Google Play Service
+version running on the device. You can verify this doing the following:
+
+```kotlin
+if(GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context)== ConnectionResult.SUCCESS) {
+  // The SafetyNet Attestation API is available.
+} else {
+  // Prompt user to update Google Play services.
+}
+```
+
+### Nonce
+
+Nonce is a term for a unique number that should't be replicated. It's
+recommended that you generate this on your server in a safe manner to
+avoid replications of requests using the same nonce. As per Google's
+recommendation:
+
+> As a best practice, derive part of the nonce from the data being sent to your servers. For example, concatenate the hash of the username with the request timestamp to form the nonce.
+
+If you want to locally make a test with a nonce, you can do so with the
+following:
+
+```kotlin
+// Nonce generation example:
+val nonce = ByteArray(32)
+SecureRandom().nextBytes(byteArray)
+```
+
+### Requesting a SafetyNet attestation
+
+With your nonce generated, you can use the following code snippet to
+receive an [attestation](https://developer.android.com/training/safetynet/attestation#kotlin) request response:
+
+```kotlin
+SafetyNet.getClient(this).attest(nonce, API_KEY)
+    .addOnSuccessListener(this) {
+        // Indicates communication with the service was successful.
+        // Use response.getJwsResult() to get the result data.
+    }
+    .addOnFailureListener(this) { e ->
+        // An error occurred while communicating with the service.
+        if (e is ApiException) {
+            // An error with the Google Play services API contains some
+            // additional details.
+            val apiException = e as ApiException
+
+            // You can retrieve the status code using the
+            // apiException.statusCode property.
+        } else {
+            // A different, unknown type of error occurred.
+            Log.d(FragmentActivity.TAG, "Error: " + e.message)
+        }
+    }
+```
+
+### Verifying the response
+
+With the request response in hands, it's time to validate the response
+to confirm if the device has been tampered with. It's important to notice
+that the ideal solution is for the server to validate the response and
+apply restriction if the device is tampered (like invalidating the token)
+as a malicious user can try to reverse engineer the app and remove the
+validation from your code making the SafetyNet request useless.
+
+If you want to trigger some action as well in the app, you can parse
+the response on the device as well.
+
+This is the payload response object:
+
+```kotlin
+data class SafetyNetResponse(
+    val timestampMs: Long,
+    val nonce: String,
+    val apkDigestSha256: String,
+    val apkPackageName: String,
+    val apkCertificateDigestSha256: List<String>,
+    val ctsProfileMatch: Boolean = false,
+    val basicIntegrity: Boolean = false,
+    val advice: List<String>? = null
+)
+```
+
+You can parse it on the `addOnSuccessListener()` like this:
+
+```kotlin
+private fun parseJsonWebSignature(jwsResult: String?): SafetyNetResponse? {
+    jwsResult ?: return null
+    val parts = jwsResult.split(".")
+    return if (parts.size == 3) {
+        //we're only really interested in the body/payload
+        val decodedPayload = String(Base64.decode(jwtParts[1], Base64.DEFAULT))
+        Gson().fromJson<SafeResponse>(decodedPayload)
+    } else {
+        null
+    }
+}
+```
+
+This is a description of what each of the items on the SafetyNetResponse
+means:
+
+- **timestampMs**: Milliseconds past the UNIX epoch when the JWS response message was generated by Google's servers.
+- **nonce**: The single-use token that the calling app passes to the API.
+- **apkPackageName**: The calling app's package name.
+- **apkCertificateDigestSha256**: Base-64 encoded representation(s) of the SHA-256 hash of the calling app's signing certificate(s)
+- **ctsProfileMatch**: A stricter verdict of device integrity. If the value of ctsProfileMatch is true, then the profile of the device running your app matches the profile of a device that has passed Android compatibility testing.
+- **basicIntegrity**: A more lenient verdict of device integrity. If only the value of basicIntegrity is true, then the device running your app likely wasn't tampered with. However, the device hasn't necessarily passed Android compatibility testing.
+- **error**: Encoded error information relevant to the current API request.
+- **advice**: A suggestion for how to get a device back into a good state.
+
+Here is a good further reading: [10 things you might be doing wrong when using the SafetyNet Attestation API](https://android-developers.googleblog.com/2017/11/10-things-you-might-be-doing-wrong-when.html)
+
+## There's no such thing as a perfect app
+
+After applying all these tips to your app you are improving the general
+security of your application and making it hard for malicious users to
+modify and distribute your app. An important thing to keep in mind is that
+security can always be improved and the tips here are not to be the
+perfect solution. Technology evolves and safe methods today can be unsafe
+tomorrow. So put in mind that you always have to try to keep one step ahead
+of malicious users and be aware of methods that are not safe anymore so your
+app doesn't become exposed.

@@ -25,8 +25,20 @@ const currentLocaleTopPath = getRelativeLocaleUrl(lang, '/')
 >
   <div class="container flex h-16 max-w-5xl items-center justify-between">
     <a href={currentLocaleTopPath}>
-      <Picture class="h-4 w-auto max-w-[180px] dark:hidden" src={GreyLogo} alt="Monstar lab" />
-      <Picture class="hidden h-4 w-auto max-w-[180px] dark:block" src={YellowLogo} alt="Monstar lab" />
+      <Picture
+        class="h-4 w-auto max-w-[180px] dark:hidden"
+        src={GreyLogo}
+        alt="Monstar lab"
+        formats={['avif']}
+        fallbackFormat={'webp'}
+      />
+      <Picture
+        class="hidden h-4 w-auto max-w-[180px] dark:block"
+        src={YellowLogo}
+        alt="Monstar lab"
+        formats={['avif']}
+        fallbackFormat={'webp'}
+      />
     </a>
     <div>
       <ModeToggle client:load />

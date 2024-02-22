@@ -1,0 +1,144 @@
+---
+date: 2021-09-11
+title: "RubyKaigi Takeout 2021: A Look Back"
+tags: [ruby, rails, conference]
+image: './header.webp'
+authors:
+  - milan-vit
+categories:
+  - afk
+---
+
+Can you believe it’s already been an entire year since I had the opportunity to join my first ever developers
+conference, the RubyKaigi? Over the past three days, I was blessed with the opportunity to also enjoy this year’s
+talks and sessions, and get once again the opportunity to immerse myself in the Ruby ecosystem that I had to,
+unfortunately, leave behind for the time being due to project assignments. In this article, I’d like to highlight
+some of my favourite moments from the conference.
+
+## About RubyKaigi
+
+Before I delve into the details on various sessions, let me just make sure we’re all on the same page by reiterating
+what RubyKaigi is in the first place. [RubyKaigi](https://rubykaigi.org/2021-takeout) is the largest conference for
+Ruby programmers held annually in Japan since 2006. Just like last year, while some of the presentations and
+discussions are done in Japanese, there was a simultaneous live audio translation service available for the numerous
+international members of the community that do not have the luxury of knowing the Japanese language.
+
+Finally, just like last year, this year’s RubyKaigi format has been altered into an online-only conference. I hope that
+next year, we can all go back to the original format of an in-person conference.
+
+## TypeProf for IDE
+
+The conference kicked off into high gear with
+[Yusuke Endoh-san’s keynote presentation](https://rubykaigi.org/2021-takeout/presentations/mametter.html) on the
+benefits of static typing and [TypeProf](https://github.com/ruby/typeprof), a code analysis tool shipped with Ruby 3.0,
+that is capable to analyze the types of your code without having to write every single type annotation. Today’s special
+announcement followed just shortly after, and it took the form of TypeProf for IDE, an extension for Visual Studio Code
+powered by TypeProf.
+
+TypeProf for IDE can already today provide on-the-fly hints on method signatures (displayed conveniently in Code Lens),
+report errors as you type, find definitions of methods you call and offer code completion which takes types into
+consideration. Of course and as always, if TypeProf guesses the type of your method incorrectly, you can manually
+override that inferred type signature by manually specifying the method signature using RBS. TypeProf for IDE will ship
+with Ruby 3.1, but if the above description already got you excited (as it should!), you can start using it
+[today](https://gist.github.com/mame/86234de6a58352b9f994e0f8a6d6fbc2) by following a couple of manual steps.
+
+I welcome TypeProf for IDE as an exciting addition to the Ruby ecosystem that will allow for comfortable development
+even in light-weight editors, because it should not be needed to open a full-blown IDE (don’t worry, I still love you,
+RubyMine) just to write a simple script or make a small change in your code.
+
+## Ruby Archaeology, parallel testing with Ractors and the danger of regular expressions 💎⛏
+
+Many other great sessions were happening on the first day of RubyKaigi, but if I had to highlight only three,
+then [Ruby Archaeology by Nick Schwaderer](https://rubykaigi.org/2021-takeout/presentations/schwad4hd14.html) would have
+to be one of my them for sure. In his talk, Nick looked into the ancient history of Ruby and explained all the hoops and
+traps he had to overcome and work his way around to get a 12-year-old version of Ruby working. Even though Ruby itself
+would run just fine in an appropriate operating system for that time, to my surprise, most of the problems seemed to lie
+elsewhere – in particular, by relying on remote resources that may not be accessible the same way as they used to be, or
+just might be gone in the digital heaven altogether. Fortunately, if you want to follow in Nick’s footsteps and become a
+time traveller yourself, you [won’t have to work quite as hard as he did](https://github.com/Schwad/portal_gun).
+
+Finally, I’d like to highlight
+[Vinicius Stock’s presentation and work](https://rubykaigi.org/2021-takeout/presentations/vinistock.html) on a test
+framework that would leverage the power of Ractors to achieve faster test execution (because having a slow test suite is
+the best way to discourage your developers to run it) and
+[Martin J. Dürst’s tour into the land](https://rubykaigi.org/2021-takeout/presentations/duerst.html) of amazing, yet
+sometimes dangerous regular expressions.
+
+## Keyboard is essentially Ruby, or ⌨️ = 💎
+
+Okay okay, I might be biased but I still have to say this: the personal highlight of the second day, if not the entire
+conference, would really have to be our
+[Monstarlab’s Hitoshi Hasumi-san’s presentation](https://rubykaigi.org/2021-takeout/presentations/hasumikin.html) on
+[PRK Firmware](https://github.com/picoruby/prk_firmware) – and that’s a pretty crazy achievement if you consider how
+amazing the rest of the speakers and presentations were!
+
+In his live presentation, Hasumi-san kept blowing the audience collective minds in regular intervals. On the first
+level, it’s already incredibly impressive to be able to program the firmware of your custom-built keyboard in Ruby.
+On the next level, it’s even more impressive to be able to dedicate certain keys to execute Ruby code, as Hasumi-san
+demonstrated with his Fibonacci key and password generator key. And then on whole another level from another universe,
+it’s truly mind-blowing to have a “Ruby key” which turns the combination of your keyboard and any text editor (even as
+simple as `Notepad.exe`) into essentially an IRB shell. You can truly take your Ruby with you anywhere you go – but
+before you actually go, don’t forget to read
+[Hasumi-san’s article on static type checking](https://engineering.monstar-lab.com/2021/05/27/Static-type-checking-in-PicoRuby)
+in PicoRuby if you missed it earlier!
+
+## Graphical Terminal User Interface of Ruby 3.1
+
+I have to come clean, I’m a big fan of smart, intuitive and user-friendly terminal user interfaces, or TUIs for short.
+IRB is already a very smart REPL (read-evaluate-print-loop, something every self-respecting programming language should
+provide) environment with its powerful auto-completions, automatic indentations and even syntax highlighting, but it
+seems that [Itoyanagi Sakura-san’s plans](https://rubykaigi.org/2021-takeout/presentations/aycabta.html) don’t stop
+there: by improving the Reline library, IRB in Ruby 3.1 will offer not only code auto-completion using the `Tab` key as
+before, but will even show you all possible options in a lovely drop-down menu, just like any IDE would!
+
+## Do regex dream of Turing completeness? 😴💭
+
+Finally, the third and final day of RubyKaigi kicked off with
+[Daniel Magliola’s investigative goal](https://rubykaigi.org/2021-takeout/presentations/dmagliola.html) of finding out
+whether regular expressions are Turing-complete by trying to implement
+[Conway’s Game of Life](https://playgameoflife.com) entirely in a regular expression. I think I won’t spoil much
+by sharing the conclusion – which is the realization that regular expressions are not fully Turing-complete, but
+they’re not that far off the mark – because the entire talk is absolutely worth watching and shows not only Daniel’s
+ingenuity and inventiveness, but also the power and quirks of regular expressions that you likely were not aware of
+before.
+
+## Native extensions and dead ends
+
+Following up was an interesting talk by
+[Mike Dalessio on the topic of native extensions](https://rubykaigi.org/2021-takeout/presentations/flavorjones.html)
+(“this could take a while…”, a message we all likely saw in the past and sighed just a bit anytime it appeared in our
+terminals) and native gems, which contain the pre-compiled libraries for a specific architecture, thus removing the need
+to compile the C extensions yourself.
+
+Richard Schneeman demonstrated in an
+[incredibly professionally done presentation](https://rubykaigi.org/2021-takeout/presentations/schneems.html) his work
+on the [`dead_end`](https://github.com/zombocom/dead_end) which will help you next time quickly diagnose and fix all of
+your “unexpected end” error messages with ease. It can diagnose missing `end` and `do` keywords as well as unmatched `|`
+and `}` symbols, and I’d love to both try it myself soon and also have it included in Ruby itself.
+
+## Closing keynote by Yukihiro “Matz” Matsumoto
+
+Finally, the conference concluded with
+[Yukihiro Matsumoto-san’s closing keynote](https://rubykaigi.org/2021-takeout/presentations/yukihiro_matz.html).
+
+In the first half, he looked back at the relatively recent release of Ruby 3.0, which was both a first major release
+in nearly eight years (since Ruby 2.0’s original release), but also a release that still kept the importance of
+backward compatibility in mind, because as surprising as that might be to some communities, developers don’t really
+like new things if it means that their old code stops working and has to be re-written.
+
+Matsumoto-san highlighted the wonderful additions that Ruby 3.0 brought to the developers, such as support for type
+definitions with RBS, which are conceptually similar to TypeScript’s `d.ts` files – or personally, I feel that they
+are very similar in both nature and syntax to Elixir’s Dialyzer typespecs. Numbered block parameters and support for
+pattern matching (funnily enough, two more features that I love in Elixir and am so happy to see in Ruby) were also
+mentioned, as well as two approaches for better concurrent programming: Fiber Scheduler with its fast context switching
+is ideal for I/O heavy operations, while Ractor is here to save the day for all the CPU-intensive tasks.
+
+After that, the presentation shifted focus to the upcoming release of Ruby 3.1. It was stated that Ruby 3.1 will be
+a conservative release with the main goals of improved stability, more bug fixing, and especially two things:
+_developer comfort_ (thanks to a more powerful IRB and TypeProf for IDE) and _even more speed_ – but ideally, it would
+be a speed that doesn’t come in the form of pointless number-chasing in artificial benchmarks, but rather a speed that’s
+more closely related to where speed is truly needed in real-world applications.
+
+I cannot but applaud the decision to focus on these two aspects, as I find the developer’s comfort one of the key
+elements in a programming language’s viability, and unfortunately, the rest of the world judges languages by the other
+aspect. I can’t wait to see what the future brings to Ruby, and I hope to participate in RubyKaigi also next year!

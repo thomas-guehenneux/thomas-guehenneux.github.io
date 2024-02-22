@@ -1,0 +1,380 @@
+---
+title: Connect-goとVSCode Dev Containerを用いた快適なgRPC開発環境構築
+tags:
+  [
+    gRPC,
+    Golang,
+    Air,
+    Connect-go,
+    protoc-gen-validate,
+    protobuf,
+    VSCode,
+    Dev Container,
+    Backend,
+  ]
+image: "./header.webp"
+authors:
+  - yukio-ueda
+date: 2023-07-10
+---
+
+こんにちは！モンスターラボで Backend チームに所属している植田です。
+最近関わったプロジェクトで、gRPC を使おうという話があがったため、サクッと快適な開発環境を立ち上げる方法について、あれこれ試行錯誤をしました。
+本記事ではその方法についてご紹介します。
+コードは Connect-go のチュートリアルをベースとして使用しました。Dev Container でコンテナ開発環境を構築し、Air などを使用して Hot Reload を導入し、protoc-gen-validate を使用して validation を行うまでを紹介します。
+開発環境の構築にフォーカスするため、gRPC、Connect に関する技術的な説明やアーキテクチャ設計や CI/CD に関しては本記事の対象外とします。
+サンプルコードのリポジトリは[こちら](https://github.com/Yukio0315/connect-sample)です
+
+## 目次
+
+- 動作環境
+- 技術スタック
+- 動作方法
+- 環境構築について
+- VSCode Dev Container の初期設定
+  - Features の導入
+    - Oh My Zsh の設定
+  - Extensions のインストール
+  - Golang 開発用の Dockerfile の設定
+- Connect-go の環境構築
+  - Extensions の導入
+  - サンプルコードの記入
+  - Hot Reload の導入
+  - リクエストバリデーション機能の追加
+- 動作確認
+- 終わりに
+
+## 動作環境
+
+下記の環境で動作検証をしております。
+
+- M1 MacBook Pro (Ventura 13.4.1)
+- Docker Desktop for Mac Version 4.20.1
+- VSCode Version 1.79.2
+- Dev Containers v0.295.0
+
+## 技術スタック
+
+- [VSCode Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers)
+- [Golang](https://go.dev/)
+- [Air](https://github.com/cosmtrek/air)
+- [Connect-go](https://connect.build/docs/go/getting-started)
+- [protoc-gen-validate(PGV)](https://github.com/bufbuild/protoc-gen-validate)
+
+## 環境構築について
+
+個人的には快適な開発環境の条件は 3 つあると考えています。
+
+1. 人間の注意力に頼らず、一定以上のコード品質を保てること
+2. 書いたコードがすぐにコンパイルされて、フィードバックを得られること
+3. 誰もが開発をすぐに始められること
+
+これらを踏まえて gRPC の開発環境で実現するために、
+IDE は VSCode Dev Container、言語は Golang, gRPC のライブラリでは Connect、Hot Reload の実現のために Air などのライブラリを選定しました。
+今回選定したツールはデファクトスタンダードであることと、自分で使ってみて好みだったものを選定しています。
+
+## VSCode Dev Container の初期設定
+
+Dev Containers extension の Add Dev Container Configuration Files コマンドで作成した Go の[テンプレート](https://github.com/devcontainers/templates/tree/main/src/go)をベースにして、設定を追加します。
+Container に Go の設定をインストールするため、Container の build は Dockerfile に設定しました。
+その他の設定項目は主に以下の 3 つです。git の pre-commit の設定など、他にももっとやりたいことがありますが、gRPC 開発を走りだすことを最優先にし、最小限の構成に抑えました。
+
+- Features を導入すること。
+- VSCode の設定をし、Extensions を導入すること。
+- Dockerfile に go の開発に必要なツール類をインストールすること。
+
+### Features の導入
+
+#### Oh My Zsh の設定
+
+快適な Shell 環境を整えるために、 Oh My Zsh を採用しました。
+Shell に関しては人それぞれこだわりがあると思うので、好きなものを採用するのが良いと思います。
+Oh My Zsh を Dev Container に導入する方法は以下の 4 ステップです。
+
+##### 1. Zsh と Oh My Zsh のインストール
+
+Features として[common-utils](https://github.com/devcontainers/features/pkgs/container/features%2Fcommon-utils)のインストールすることで、この 2 つは導入できます。
+Features に以下のように設定します。
+
+`devcontainer.json`
+
+```json
+{
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "configureZshAsDefaultShell": true
+    }
+  }
+}
+```
+
+##### 2. default shell を zsh に設定
+
+Dev Container の dockerfile に下記のスクリプトを書くことで、デフォルト shell を zsh に変更できます。
+参考：[stack overflow](https://stackoverflow.com/questions/55987337/visual-studio-code-remote-containers-change-shell)
+
+`.devcontainer/Dockerfile`
+
+```dockerfile
+RUN echo "if [ -t 1 ]; then" >> /root/.bashrc
+RUN echo "exec zsh" >> /root/.bashrc
+RUN echo "fi" >> /root/.bashrc
+```
+
+##### 3. .zshrc に Oh My Zsh の設定を記載
+
+.devcontainer の.zshrc に Oh My Zsh の設定を記載します。
+記載内容は Oh My Zsh の [zsh-template](https://github.com/ohmyzsh/ohmyzsh/blob/master/templates/zshrc.zsh-template) を使用しました。
+
+##### 4. .zshrc を container にコピー
+
+最後に Dockerfile に以下の一文を追加し、container の home directory にコピーします。
+
+`Dockerfile`
+
+```dockerfile
+ADD .zshrc $HOME
+```
+
+### VSCode の設定をし、Extensions の導入
+
+いよいよ VSCode の設定に入ります。まずは settings.json の設定ですが、公式の[Default settings](https://code.visualstudio.com/docs/getstarted/settings#_default-settings)を使用します。あとは個人の好みに合わせてカスタマイズしてください。
+Extensions の導入ですが、ここは最も好みが反映される箇所です。自分の場合は以下のようにしました。
+全て有名な Extensions だと思うので、それぞれの Extensions の詳細は省きます。
+それぞれ必要の都度、設定ファイルに設定を書き込むことも忘れないようにします。
+
+`.devcontainer.json`
+
+```json
+{
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "EditorConfig.EditorConfig",
+        "streetsidesoftware.code-spell-checker",
+        "wayou.vscode-todo-highlight",
+        "ms-azuretools.vscode-docker",
+        "shardulm94.trailing-spaces",
+        "bungcip.better-toml"
+      ]
+    }
+  }
+}
+```
+
+### Golang 開発用の Dockerfile の設定
+
+Golang 開発に欠かせないのが、Extensions の[Go](https://github.com/golang/vscode-go)です。
+とりあえずこれだけインストールしておけば、開発はできます。
+
+`.devcontainer.json`
+
+```json
+{
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      "extensions": ["golang.go"]
+    }
+  }
+}
+```
+
+Dockerfile には Extensions の Go が依存する gopls, dlv などをインストールし、その他必要そうなツールをインストールして、
+Golang の開発環境は完成です。
+
+`Dockerfile`
+
+```dockerfile
+RUN go install github.com/cweill/gotests/gotests@latest
+RUN go install github.com/josharian/impl@latest
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
+RUN go install honnef.co/go/tools/cmd/staticcheck@latest
+RUN go install golang.org/x/tools/gopls@latest
+```
+
+## Connect-go の環境構築
+
+前章までで一通り Golang を動かせる環境が整ったので、ここからは Connect-go を動かせるようにします。
+基本的に[チュートリアル](https://connect.build/docs/go/getting-started/)の通りにやれば簡単に動きます。
+
+### Extensions の導入
+
+Dockerfile にチュートリアルのように以下のコマンドを Dockerfile に書き込みます。
+
+`Dockerfile`
+
+```dockerfile
+RUN go install github.com/bufbuild/buf/cmd/buf@latest
+RUN go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+RUN go install github.com/bufbuild/connect-go/cmd/protoc-gen-connect-go@latest
+```
+
+### サンプルコードの記入
+
+あとはチュートリアルに従って、go.mod や buf.yaml, buf.gen.yaml を作成し、
+本体のコードを書いて、main.go を run して動けば Connect-go の環境構築は完了です。
+
+### Hot Reload の導入
+
+快適な開発環境の構築に向けて、Hot Reload を導入します。
+Hot Reload の導入には２ステップ必要です。
+
+1. Code の自動生成
+2. Golang コードの Hot Reload
+
+#### Code の自動生成
+
+Code の自動生成には`buf generate`コマンドを proto ファイル保存時に叩く必要があります。
+そこで今回は VSCode Extensions の[Run on Save](https://github.com/emeraldwalk/vscode-runonsave)を使用しました。
+
+使い方は単純で、devcontainer の extensions に `"emeraldwalk.RunOnSave"` を追加します。
+そして設定を.vscode の settings.json に以下のように記載します。
+
+```json
+{
+  // Run on Save
+  // proto-gen
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+        "match": "\\.proto$",
+        "cmd": "rm -rf gen | buf generate"
+      }
+    ]
+  }
+}
+```
+
+この cmd では gen 配下のディレクトリを全て消去しています。これは`buf generate`コマンドでは誤って生成したファイルが消されないためです。
+
+規模が大きくなってきたときはこの辺は少し見直さないといけない部分になります。
+
+#### Golang の Hot Reload(Air)の導入
+
+Golang の Hot Reload は[Air](https://github.com/cosmtrek/air)を導入しました。
+インストール方法はいろいろありますが、Dockerfile に `RUN go install github.com/cosmtrek/air@latest`を記入すれば完成です。
+あとは設定ファイルですが、`air init`コマンドを container 内で実行すれば、.air.toml ファイルが生成されるので、
+[.air_sample.toml](https://github.com/cosmtrek/air/blob/master/air_example.toml)を参考に cmd などを変更します。
+
+また、今回は`delay=500`に設定しています。もし delay がないと RunOnSave が動作したときに gen ディレクトリ配下のファイル を読み取ることができなくなってしまうためです。
+
+Hot Reload 設定後は Container が立ち上がった後に Air が自動で立ち上がるようにします。
+以下のように Dev Container の postStartCommand を使用します。
+
+`devcontainer.json`
+
+```json
+{
+  "postStartCommand": "air -c .air.toml"
+}
+```
+
+これで Hot Reload の設定が全て完了しました。
+
+### リクエストバリデーション機能の追加
+
+ここからは実際に使うことを想定して、リクエストのバリデーション機能を追加してみます。
+Connect のバリデーションには、[protoc-gen-validate(PGV)](https://github.com/bufbuild/protoc-gen-validate)を使用します。
+
+Dockerfile に`RUN go install github.com/envoyproxy/protoc-gen-validate@latest`を追加します。
+あとはドキュメントにある通り、buf.gen.yaml と buf.yaml に設定を追加しますが、この環境に合わせて、opt を追加することを忘れないように注意が必要です。
+
+`buf.gen.yaml`
+
+```yaml
+plugins:
+  - plugin: buf.build/bufbuild/validate-go
+    out: gen
+    opt: paths=source_relative
+```
+
+`buf.yaml`
+
+```yaml
+deps:
+  - buf.build/envoyproxy/protoc-gen-validate
+```
+
+この後に`buf mod update`コマンドを実行し、`buf.gen.yaml` ファイルを生成します。
+ちなみに`bef generate`を自動で動作させていると、Error メッセージを受け取ることができないので、要注意です。
+うまく動かない場合は、手動でコマンドを動かすことをお勧めします。
+
+それでは実際に Validation を働かしてみます。
+`greet.proto` ファイルに validate を import し、GreetRequest に validation rule を以下のように変更します。
+
+`greet/v1/greet.proto`
+
+```proto
+syntax = "proto3";
+
+package greet.v1;
+
+import "validate/validate.proto";
+
+option go_package= "connect-sample/gen/greet/v1;greetv1";
+
+message GreetRequest {
+  string name= 1 [(validate.rules).string = {min_len: 5, max_len: 10}];
+}
+
+message GreetResponse {
+  string greeting = 1;
+}
+
+service GreetService {
+  rpc Greet(GreetRequest) returns (GreetResponse) {}
+}
+
+```
+
+buf generate コマンドを起動すると、`gen.pb.validate.go`というファイルが生成されます。
+ファイルの中身を読んでみるとわかるのですが、`GreetRequest`　 type struct に`Validate`や`ValidateAll`などのメソッドが定義されているため、
+これを使用します。
+以下のように Validate を追加しました。
+
+```go
+func (s *GreetServer) Greet(
+ ctx context.Context,
+ req *connect.Request[greetv1.GreetRequest],
+) (*connect.Response[greetv1.GreetResponse], error) {
+ if err := req.Msg.Validate(); err != nil {
+  return nil, err
+ }
+ log.Println("Request headers: ", req.Header())
+ res := connect.NewResponse(&greetv1.GreetResponse{
+ Greeting: fmt.Sprintf("Hello, %s!", req.Msg.Name),
+ })
+ res.Header().Set("Greet-Version", "v1")
+ return res, nil
+}
+```
+
+これで Validation の設定は完了です。
+
+## 動作確認
+
+以下の３コマンドで動作確認ができます。
+
+```shell
+git clone https://github.com/Yukio0315/connect-sample
+
+devcontainer open # if devcontainer CLI installed
+
+root ➜ /workspaces/connect-sample (main) $ go run ./cmd/client/main.go
+YYYY/MM/DD hh:mm:ss unknown: invalid GreetRequest.Name: value length must be between 5 and 10 runes, inclusive
+```
+
+これでサーバーが問題なく動作し、バリデーションも効いていることを確認できました。
+
+## 終わりに
+
+本記事では Connect-go を用いて快適な gRPC 開発環境を Dev Container で高速に立ち上げる方法について解説しました。
+Lint や Hot Reload などを導入し、ある程度快適な環境を作れたと思います。
+まだまだ足りない部分などがあるとは思いますが、最低限開発を始めるのに必要十分な環境を整えることができました。
+この記事が gRPC 開発などの役に立てたら嬉しいです。
+
+_Article Photo by [Simon Berger](https://unsplash.com/photos/aZjw7xI3QAA)_

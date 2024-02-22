@@ -16,18 +16,18 @@ interface Props {
 }
 const { currentPage, lastPage, url } = Astro.props
 
-const firstPage = url.current.replace(/\/\d+$/, '/')
+const firstPage = url.current.replace(/\/\d+$/, '')
 
 const getTwoPagesBackUrl = () => {
   if (currentPage === 3) {
-    return `${firstPage}`
+    return `${firstPage}/`
   } else if (currentPage - 2 > 0) {
-    return `${firstPage}${currentPage - 2}`
+    return `${firstPage}/${currentPage - 2}`
   }
   return undefined
 }
 
-const twoPagesForward = currentPage + 1 < lastPage ? `${firstPage}${currentPage + 2}` : undefined
+const twoPagesForward = currentPage + 1 < lastPage ? `${firstPage}/${currentPage + 2}` : undefined
 ---
 
 <Pagination>

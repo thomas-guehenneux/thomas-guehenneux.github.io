@@ -1,0 +1,84 @@
+---
+title: Kotlin async/await
+tags: [android]
+image: "./header.webp"
+authors:
+  - teruhiko-tanaka
+categories:
+  - android
+date: 2021-12-03
+---
+
+今回は、Androidの非同期処理をKotlin Coroutineで簡単に行えるasync/awaitについて紹介します。
+async/awaitがよく使われるケースは、例えば、詳細情報を取得するAPIと付加情報を取得するAPIを、Coroutineで処理した内容が終わったタイミングで待ち合わせて、詳細ページを作成します。
+
+まず、asyncとはCoroutineを起動する関数の一つです。
+基本的にlaunchと同じ。違いは、値を返すかになります。
+値は、Deferred型です。Deferred型とは、返却値はfuture promiseになります。つまり、 Coroutineの処理が終わったタイミングで戻り値を取得します。
+
+```
+fun <T> CoroutineScope.async(context: CoroutineContext = EmptyCoroutineContext, start: CoroutineStart = CoroutineStart.DEFAULT, block: suspend CoroutineScope.() -> T): Deferred<T>
+```
+
+値が必要になったらawait()を呼び出します(ブロッキングコール)
+値が利用可能であれば、すぐに返されます。
+値が得られない場合は、得られるまでスレッドを一時停止します。
+
+下記は、Coroutine で処理した内容が終わったタイミングで待ち合わせて、ランダム値の合計を返す例になります。簡単に説明すると、最初に2秒間後ランダム値を取得して、 次に3秒間かけてランダム値を取得します。その結果を待ち合わせして、合計値を算出したケースになります。つまり、getValueByAPI２と合わして並列に実行されてMax(1秒, 2秒, 3秒)で約3秒で実行されます。
+
+サンプル:
+```
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlin.system.measureTimeMillis
+
+fun main() {
+    var time = measureTimeMillis {
+        runBlocking {
+            val firstDeferred = async { getValueByAPI1() }
+            val secondDeferred = async { getValueByAPI2() }
+
+            println("Doing some processing here")
+            delay(1000)
+            println("Waiting for values")
+
+            val firstValue = firstDeferred.await()
+            val secondValue = secondDeferred.await()
+
+            println("The total value is ${firstValue + secondValue}")
+        }
+    }
+    println("The total time (API1 + API2): ${time/1000.0}s")
+}
+
+suspend fun getValueByAPI1(): Int {
+    delay(2000)
+    val range = (1..1000)
+    val value = range.random()
+    println("Return value $value from API1")
+
+    return value
+}
+
+suspend fun getValueByAPI2(): Int {
+    delay(3000)
+    val range = (1..1000)
+    val value = range.random()
+    println("Return value $value from API2")
+
+    return value
+}
+```
+
+出力結果:
+```
+Doing some processing here
+Waiting for values
+Return value 29 from API1
+Return value 987 from API2
+The total value is 1016
+The total time (API1 + API2): 3.118s
+```
+
+ 次回は、Gradleを使ったプラグインの作成をやります。

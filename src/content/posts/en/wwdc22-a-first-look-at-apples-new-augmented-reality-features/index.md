@@ -1,0 +1,113 @@
+---
+date: 2022-06-07
+title: WWDC22 - A first look at Apple's new Augmented Reality features
+tags: [ios, arkit, realitykit, augmented reality, wwdc22, roomplan]
+image: './header.webp'
+authors:
+  - roxana-jula
+categories:
+  - ios
+  - immersive-technologies
+---
+
+Over 34 million developers are part of Apple's developers community with access to great frameworks including AR specific ones like ARKit and RealityKit. Here is an overview of what we know so far from this year's [WWDC](https://developer.apple.com/wwdc22/) when it comes to augmented reality, with more details to unravel this week after all the engineering sessions. You can find a list of recommended AR sessions and labs to check out from this year's WWDC at the end of the article.
+
+# [RoomPlan](https://developer.apple.com/augmented-reality/roomplan/)
+
+![](roomplan.webp)
+_Image source: [Apple](https://developer.apple.com/augmented-reality/roomplan/)_
+
+A great use of the LiDAR scanner to create 3D floor plans for rooms in real-time. What is great about this new Swift API is that it also provides characteristics like dimensions and what types of furnitures and appliances are included in the scanned environment. Instructions and structural highlights are available to help guide the users in the scanning process.
+
+My colleague from Berlin, Cristian Diaz was super fast in testing this out and sharing his results. RoomPlan can provide the content in USD and USDZ file formats, which can be imported and further developed in compatible tools like Cinema 4D or AutoCAD. Opening the scanned room file and seeing the individual components is really cool. The walls, chairs, tables and even the refrigerator and oven were identified and named accordingly as you can see in the example below.
+
+![](roomplan-example.webp)
+
+Applications in the real estate and e-commerce sectors are quite obvious, but I am looking forward to see all the creative ways developers will make use of it!
+
+*Available on iOS 16.0+, iPadOS 16.0+ and Mac Catalyst 16.0+.*
+
+------
+
+More information for developers can be found on [the new RoomPlan framework documentation page](https://developer.apple.com/documentation/RoomPlan).
+
+# [ARKit 6](https://developer.apple.com/augmented-reality/arkit/)
+ARKit was first released in 2017, as Apple's go-to AR framework. In 2019, RealityKit came along with improvements as it was built from the ground up specifically for AR experiences. Here are the main updates announced this year with ARKit 6, while no news have been announced for RealityKit:
+
+## 4K Video Capture
+Available on iPhone 11 or later and iPad Pro (5th generation), this new feature will allow better quality video capture, especially great for applications that outputs video content.
+
+## Image and video capture improvements
+> "With ARKit 6, you can capture a high-resolution background image during an ARKit session, which is great for enabling higher-quality virtual object reconstruction and for photography apps that want to guide users to the perfect shot while maximizing final image quality. ARKit 6 also introduces support for HDR video and adds EXIF tags, such as exposure and white balance, to every ARKit frame. And you can now directly control the setting exposure, white balance, and focus of the camera during an ARKit session." - [Apple](https://developer.apple.com/augmented-reality/arkit/)
+
+## Location Anchors (in more cities)
+Location anchors were introduced in 2020 but with a limited availability in major United States cities and London. The update we are getting this year is availability in the following additional cities:
+- **Australia**: Sydney, Melbourne
+- **Canada**: Vancouver, Montreal, Toronto
+- **Japan**: Fukuoka, Hiroshima, Kyoto, Nagoya, Osaka, Tokyo, Yokohama
+- **Singapore**
+
+## Improvements to Motion Capture
+The Motion Capture feature lets you capture the motion of a person in real time just with the use of your device. The new ARKit 6 highlights that this feature now includes tracking for your left and right ears, with improved overall body pose detection. Great potential for face filters and health applications with those additional improvements.
+
+------
+
+More information for developers can be found on [the updated ARKit framework documentation page](https://developer.apple.com/documentation/arkit).
+
+# [USD advancements](https://graphics.pixar.com/usd/release/index.html)
+Wednesday is all about USD in WWDC's AR schedule with sessions on the latest advancements in working with those assets. Understanding the core concepts of this file format is crucial if you are an Apple AR developer.
+
+# WWDC22 AR sessions
+
+**Tuesday June 7:**
+- [Bring your world into augmented reality](https://developer.apple.com/videos/play/wwdc2022-10128)
+- [Create parametric 3D room scans with RoomPlan](https://developer.apple.com/videos/play/wwdc2022/10127/)
+- [Qualities of great AR experiences](https://developer.apple.com/videos/play/wwdc2022/10131/)
+
+**Wednesday June 8:**
+- [Explore USD tools and rendering](https://developer.apple.com/videos/play/wwdc2022-10141)
+- [Understand USD fundamentals](https://developer.apple.com/videos/play/wwdc2022-10129)
+
+**Thursday June 9:**
+- [Discover ARKit 6](https://developer.apple.com/videos/play/wwdc2022-10126)
+
+# WWDC22 1-on-1 Developer Labs
+
+**Tuesday June 7:**
+- [USD and AR Quick Look lab](https://developer.apple.com/wwdc22/labs-and-lounges/dashboard/S7G7YK3P64/dashboard)
+- [RealityKit and Reality Composer lab](https://developer.apple.com/wwdc22/labs-and-lounges/dashboard/NTS6G342QK/dashboard)
+
+**Wednesday June 8:**
+- [Object Capture lab](https://developer.apple.com/wwdc22/labs-and-lounges/dashboard/W74Q8UTKCJ/dashboard)
+- [USD and AR Quick Look lab](https://developer.apple.com/wwdc22/labs-and-lounges/dashboard/YVYT5FMYBK/dashboard)
+
+**Thursday June 9:**
+- [RoomPlan lab](https://developer.apple.com/wwdc22/labs-and-lounges/dashboard/SK22SGR75J/dashboard)
+- [ARKit lab](https://developer.apple.com/wwdc22/labs-and-lounges/dashboard/WGRFWYCGAV/dashboard)
+- [RealityKit and Reality Composer lab](https://developer.apple.com/wwdc22/labs-and-lounges/dashboard/9MRC7GFH7G/dashboard)
+- [Core Motion lab](https://developer.apple.com/wwdc22/labs-and-lounges/dashboard/Y369YW9X39/dashboard)
+- [Object Capture lab](https://developer.apple.com/wwdc22/labs-and-lounges/dashboard/4S93VWZR7B/dashboard)
+- [RoomPlan lab](https://developer.apple.com/wwdc22/labs-and-lounges/dashboard/MTUCQS2B94/dashboard)
+
+**Friday June 10**
+- [ARKit lab](https://developer.apple.com/wwdc22/labs-and-lounges/dashboard/MALF95YZVL/dashboard)
+
+# WWDC22 Digital lounges
+Last year Apple introduced Digital Lounges, which is a Slack workspace you can register based on the topics you are interested in. This year "Augmented Reality" has been added as a topic which will have Q&A sessions on ARKit, RealityKit, Reality Composer, Object Capture, USD and RoomPlan.
+![](developer-lounges.webp)
+
+## One more thing... or not?
+The iOS augmented reality community has a bit of mixed feelings about this year's WWDC. Especially when companies like Snap and Niantic are really evolving in this space and catching developers interest. Nothing new on Reality Composer and RealityKit as far as we can see, which seems odd and it just makes me wonder: *is Apple saving those for a special AR-focused event coming up?*
+
+## Resources
+
+- [Augmented Reality - Apple Developer](https://developer.apple.com/augmented-reality/)
+- [ARAnchors - Bringing virtual objects into the real world](https://engineering.monstar-lab.com/en/post/2022/04/07/ARAnchors-Bringing-Virtual-Objects-into-the-real-world/)
+- [Augmented reality face filters with iOS - Borderless Engineering Conference 2021](https://youtu.be/xSLDST-a6qU)
+- [Building Augmented Reality experiences with iOS - Engineering Awesome Conference 2020](https://youtu.be/v2Br76XFAYQ)
+- [Easy web augmented reality with AR Quick Look]({{ baseurl }}2020-09-07-Easy-web-augmented-reality-with-ar-quick-look)
+- [How to convert 3D models to USDZ files using Apple's Reality Converter]({{ baseurl }}2020-04-26-how-to-convert-3d-models-to-usdz-files-using-apples-reality-converter)
+- [Using USDZ for a better AR experience]({{ baseurl }}2019-10-07-Using-USDZ-for-a-better-AR-experience)
+- [How to make an augmented reality decorating experience app with AR Quick Look]({{ baseurl }}2019-12-31-How-to-make-an-Augmented-Reality-decorating-experience-app-with-AR-Quick-Look)
+
+_Article Photo by [Apple](https://developer.apple.com/augmented-reality/roomplan/)_

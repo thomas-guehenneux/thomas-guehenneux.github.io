@@ -5,13 +5,13 @@ const authors = defineCollection({
   schema: ({ image }) =>
     z.object({
       name: z.string().min(1, { message: 'Name is required' }),
-      nameJa: z.string().optional(),
-      about: z.string().optional(),
-      occupation: z.string().optional(),
+      nameJa: z.string().nullish(),
+      about: z.string().nullish(),
+      occupation: z.string().nullish(),
       twitter: z.string().nullish(),
       github: z.string().nullish(),
-      slack: z.string().optional(),
-      image: image(),
+      slack: z.string().nullish(),
+      image: image().nullish(),
     }),
 })
 
@@ -20,8 +20,8 @@ const posts = defineCollection({
   schema: ({ image }) =>
     z.object({
       title: z.string().min(1, { message: 'Title is required' }),
-      image: image(),
-      tags: z.array(z.string()),
+      image: image().optional(),
+      tags: z.array(z.string()).optional(),
       categories: z.array(reference('categories')).optional(),
       authors: z.array(reference('authors')),
       date: z.date(),

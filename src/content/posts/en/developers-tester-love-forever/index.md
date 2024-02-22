@@ -1,0 +1,197 @@
+---
+date: 2021-10-28
+title: TESTERS + DEVELOPERS = LOVE FOREVER
+tags: [qa, testing]  
+image: './header.webp'
+authors:
+  - inna-marchenko
+categories:
+ - qa
+---
+Let’s imagine an IDEAL world where all Developers test their code and the level of coverage is 100%.
+
+Why should QA Engineers test when each line in the code (each decision, each condition, each branch) is covered by unit and integration tests?
+
+They could test characteristics that cannot be covered by unit/integration tests, for example:
+- Usability
+- Performance
+- Portability
+- Etc.
+
+And this is true but frankly speaking this is not the whole truth.
+
+No method for calculating the level of coverage can be used to fully guarantee that the application functions as expected. The percentage of coverage is to know how many code lines are executed during the testing.
+
+The simplest example is when requirements have been understood incorrectly.
+
+Here is one more example.
+
+There are several methods of calculating the level of coverage. For example, to achieve 100% decision (branch) coverage, each decision in the code should have “true” and “false” value at least once.
+
+_Console application that determines if it is possible to build a triangle with sides entered by user:_
+
+```csharp
+using System;
+
+namespace Is_it_a_Triangle
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int a = int.Parse(Console.ReadLine());
+            int b = int.Parse(Console.ReadLine());
+            int c = int.Parse(Console.ReadLine());
+
+            if (Triangle.IsValidTriangle(a, b, c))
+            {
+                Console.WriteLine($"It is possible to build a triangle with sides {a}, {b}, and {c}.");
+            }
+            else
+            {
+                Console.WriteLine($"It is impossible to build a triangle with sides {a}, {b}, and {c}.");
+            }
+        }
+    }
+
+    public class Triangle
+    {
+
+        public Triangle(int a, int b, int c)
+        {
+        }
+
+        public static bool IsValidTriangle(int a, int b, int c)
+        {
+            return ((a + b > c) && (a + c > b) && (a + c > b));
+        }
+    }
+}
+```
+
+So, only two tests are necessary to achieve 100% coverage.
+
+_Tests:_
+
+```csharp
+using Xunit;
+
+namespace Is_it_a_Triangle.tests
+{
+    public class TriangleTests
+    {
+        [Fact]
+        public void IsValidTriangleTest1()
+        {
+            int a = 2;
+            int b = 2;
+            int c = 3;
+
+            bool isValidTriangle = Triangle.IsValidTriangle(a, b, c);
+
+            Assert.True(isValidTriangle);           
+        }
+
+        [Fact]
+        public void IsValidTriangleTest2()
+        {
+            int a = 1;
+            int b = 1;
+            int c = 3;
+
+            bool isValidTriangle = Triangle.IsValidTriangle(a, b, c);
+
+            Assert.False(isValidTriangle);
+        }
+    }
+}
+```
+
+What if we add one more test?
+
+```csharp
+        [Fact]
+        public void IsValidTriangleTest3()
+        {
+            int a = 3;
+            int b = 1;
+            int c = 1;
+
+            bool isValidTriangle = Triangle.IsValidTriangle(a, b, c);
+
+            Assert.False(isValidTriangle);
+        }
+```
+
+It won’t pass.
+The problem is in the following line:
+
+```csharp
+return ((a + b > c) && (a + c > b) && (a + c > b));
+```
+
+“(a + c > b)” condition is added two times. Instead, it should be:
+
+```csharp
+return ((a + b > c) && (a + c > b) && (b + c > a));
+```
+
+This is a very simple program, but even here the user could enter numbers like doubles or maybe not numbers at all. That will cause errors in addition to the one I described above.
+
+Kudos to Developers who test their code. My hat is off to them. And this is all because we live in a REAL world where Developers don’t have enough time for creating and maintaining tests, they take care of more than 1 project and have several meetings per day, where requirements are changing too often.
+
+I like to be on the same project with Developers who want to produce qualitative products and not only to complete their tasks.
+
+There are so many opportunities how Testers can support Developers:
+- to prepare test data
+- to advice if they have knowledge about similar feature on another project
+- to use different techniques to prepare tests (to not skip most of bugs)
+- to give an overview of the functionality which is going to be fixed or increased
+- to see light at the end of the tunnel and let everyone else see it too
+
+There are a lot of test design techniques (specification-based and experience-based) in our arsenal.
+
+For example, Equivalence Partitioning is the best for smoke testing. Usually it is used in pair with Boundary Value Analysis.
+Decision Table Testing is good not only for creating tests but it also helps to determine gaps in the requirements.
+State Transition Testing is the best when you need to perform security testing (but not only there).
+There are tools that help in Pairwise Testing. This technique solves the problem of having too many combinations of parameter values.
+
+I use them for each feature I am testing. Sometimes, when I don’t have enough time to create test cases, my tests looks like the following:
+
+![](testcases.webp)
+
+Once I have some free time I add these tests to our Test Management system.
+
+Additionally, understanding test design techniques helps to not perform superfluous tests and save time for more needed tests.
+
+Let’s not forget about experience-based techniques. To be honest these techniques are just an addition to the more formal ones, but in the right hands they are powerful weapons.
+
+Each QA Engineer has his own list of common bugs in addition to well-known ones that may be found by Google.
+
+Some time ago (when I was preparing for the “Mobile Application Testing Foundation Level” exam), I learned about such an exploratory testing technique as Mnemonics.
+
+An example of a mnemonic is SFiDPOT (taken from [here](https://www.istqb.org/downloads/send/61-mobile-application-testing/251-mobile-application-testing-specialist-syllabus.html)). Each letter has its own meaning:
+- **S – Structure** (e.g., user interface elements, other application elements and their order and call hierarchy)
+- **F – Function** (e.g., desired features are working, available, and functioning according to the requirements etc.)
+- **i - Input** (e.g., all required inputs are available and processed as they should be, such as inputs from the keyboard, sensors, and camera)
+- **D – Data** (e.g., the data is stored (also on SD card), modified, added, and deleted as defined in the requirements)
+- **P – Platform** (e.g., the specific operating system functions are available depending on device settings, includes store for downloading the app)
+- **O – Operations** (e.g., the activities of the normal user are available, such as moving between mobile carrier networks and Wi-Fi)
+- **T – Time** (e.g., handling and display of time zones, time, and dates)
+
+One more interesting technique is Tours. Here is not full list but those which I found more useful:
+- **Connectivity** - Connectivity used, such as Wi-Fi, GSM
+- **Location** - Correct language, dates, numbers
+- **Low battery** - Data losses in the app caused by low energy levels
+- **Gesture** - Use all gestures wherever possible
+- **Orientation** - Change orientation
+- **Change your mind** - Go back
+- **Permissions** - Permissions to device features
+
+In my IDEAL world Developers work side by side with Testers, they are comrades, brothers in arms. Testers help to test code better, Developers build applications for which automation can be applied easily.
+
+My REAL world is a bit different but mostly it is close to my IDEAL world. Problems are solved, challenges make us stronger as specialists.
+
+## Testers + Developers = Love Forever
+
+_Article Photo by [Windows](https://unsplash.com/photos/p74ndnYWRY4)_

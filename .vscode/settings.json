@@ -18,5 +18,6 @@
     ["(?:classnames|classNames|cx|clsx)\\(([^)]*)\\)", "(?:')((?:\\'|[^'])*)(?:')"],
     ["(?:classnames|classNames|cx|clsx)\\(([^)]*)\\)", "(?:\")((?:\\\"|[^\"])*)(?:\")"],
     ["(?:classnames|classNames|cx|clsx)\\(([^)]*)\\)", "(?:`)((?:\\`|[^`])*)(?:`)"]
-  ]
+  ],
+  "search.useIgnoreFiles": false
 }

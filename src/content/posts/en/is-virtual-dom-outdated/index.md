@@ -1,0 +1,173 @@
+---
+date: 2022-05-26
+title: Is Virtual DOM Outdated?
+tags: [frontend, virtual dom]
+image: './header.webp'
+authors:
+  - dongyu-wang
+categories:
+  - frontend
+---
+
+<!-- ## Intro -->
+
+Front-end engineers or anyone who tried to play with popular frontend libraries/frameworks like React and Vue.js, should all have heard about the Virtual DOM. It seems to have become a standard for improving performance in front-end development. However, there is also a trend that claims to not use the Virtual DOM. In this article, we will take a look at the Virtual DOM approach and discuss if Virtual DOM is outdated?
+
+---
+
+![The Dom title image](the-dom.webp)
+
+## The DOM
+
+First, let's talk about the DOM itself. According to [MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction),
+
+> the DOM (Document Object Model) represents the web document as nodes and objects; that way, programming languages can interact with the page.
+
+Therefore, with DOM, we can easily work on the HTML nodes to create interactive components on a web page with Javascript and CSS.
+
+### DOM Tree Example
+
+![DOM Tree Example](dom-model.webp)
+
+This is a simple example that changed the content of an element:
+
+```javascript
+document.xxx.xxx.element.innerHTML = "Hello DOM!";
+```
+
+### Issues with DOM Operations
+
+If the DOM tree and the HTML content are simple enough, there is no problem with developers and end-users.
+
+However, behind the visible elements on web pages, the DOM itself has much more complicated elements and attributes. There will be a lot of work that needs to be done by the browser, for creating just one simple HTML element.
+
+Moreover, when changes happen on a large DOM node with many child nodes, it will reconstruct the whole node and re-render the whole contents to show the changes to end-users.
+
+Obviously, these issues will cost a lot of unnecessary computing resources and affect performance, especially when the web page has more nodes and more interactive changes.
+
+---
+
+![The Dom Revolutions title image](the-dom-revolutions.webp)
+
+## The (Virtual) DOM Revolutions
+
+### The Concept
+
+As described above, since it costs so much for operating the DOM directly, what about to create a gateway that can be friendly to developers, at the same time it can help to reduce the unnecessary loads and efficiently reflect changes on DOM at pin-point level? To solve this, here comes our main character, the Virtual DOM.
+
+The Virtual DOM is an light-weight abstract layer between the real DOM and the developers. It is actually a set of Javascript Objects with only the necessary elements and attributes to represent DOM tree and the nodes under it. With this abstract DOM tree, it becomes much easier and faster to create, edit or remove nodes just like the any normal Javascript Object.
+
+Furthermore, with Virtual DOM, the rendering process is also abstract, so that it provides more compatibility for Cross-platform, not only for web browsers, but also mobile native components or other GUI developments.
+
+### The Approach: diff & patch
+
+Many people got to know Virtual DOM via React, but in fact Virtual DOM is not invented by React. Many other libraries/frameworks are taking Virtual DOM approach. There are also many projects that only focus on Virtual DOM implementation such as [virtual-dom](https://github.com/Matt-Esch/virtual-dom) and [millionjs](https://millionjs.org/).
+
+Although the way they implement Virtual DOM differs, the main approach is quite similar. There are two essential steps: diff and patch.
+
+![Virtual DOM Approach](diff-patch.webp)
+
+As we discussed the DOM operation issues, the less unchanged nodes affected in the process, the more efficient the rendering can be. So the first important task is to specify the differences between before and after, this is normally called **diff** computation. After confirming the different contents, we will need another function to apply them to the real DOM, this is the **patch** operation.
+
+In this process, the **diff** computation is the most core part. The basic idea is to traverse all the nodes to make comparison between the old Virtual DOM tree and the changed one.
+
+Here is a sample code to see how diff implemented, by [livoras](https://github.com/livoras/simple-virtual-dom):
+
+```javascript
+// diff compare two DOM tree
+function diff (oldTree, newTree) {
+  var index = 0 // current node index
+  var patches = {} // record changes on each node
+  dfsWalk(oldTree, newTree, index, patches)
+  return patches
+}
+
+// depth-first walk through two DOM tree
+function dfsWalk (oldNode, newNode, index, patches) {
+  // compare the changes and record by index
+  patches[index] = [...]
+  diffChildren(oldNode.children, newNode.children, index, patches)
+}
+
+// compare child nodes
+function diffChildren (oldChildren, newChildren, index, patches) {
+  var leftNode = null
+  var currentNodeIndex = index
+  oldChildren.forEach(function (child, i) {
+    var newChild = newChildren[i]
+    currentNodeIndex = (leftNode && leftNode.count) // calculate node index
+      ? currentNodeIndex + leftNode.count + 1
+      : currentNodeIndex + 1
+    dfsWalk(child, newChild, currentNodeIndex, patches) // traverse all child nodes
+    leftNode = child
+  })
+}
+```
+
+Each Virtual DOM implementation may have its own algorithm to optimize the diff performance. Thanks to the efforts they have made, Virtual DOM became more and more mature, we don't even need to think about how it works during daily development.
+
+Nevertheless, Virtual DOM is not the only solution for all.
+
+---
+
+![The DOM Resurrections title image](the-dom-resurrections.webp)
+
+## The DOM Resurrections
+
+### New Stars Arise
+
+Since Virtual DOM has got such advanced that almost became the industry standard, how can someone say it's outdated? Let's look at an interesting fact from a web survey about Frontend frameworks/libraries by [stateofjs](https://2021.stateofjs.com/en-US/libraries/front-end-frameworks/).
+
+![Front-end Frameworks Rank](ranking.webp)
+
+According to the survey result, in the past 5 years, React, Angular and Vue.js are keeping the top 3 positions as the most used front-end frameworks. We can understand this without any doubt. However, when we turn to the satisfaction or interest aspect in 2020 and 2021, two unfamiliar names came among the best, they are [Solid](https://www.solidjs.com/) and [Svelte](https://svelte.dev/). And both of them are claiming the feature of fast and high performance **with NO Virtual DOM**.
+
+### Back to the DOM
+
+Thinking about why Solid or Svelte can provide high performance by just using the real DOM, we can roughly summarize it into two reasons:
+
+#### 1. The real DOM is not "That Bad"
+
+We know that the real DOM may cost unnecessary computing resources especially when complicated changes happen. But as the computers and browsers are advancing, the real DOM operation may not make obviously a difference in the view of end-users. Jason Knight did a test about the [real DOM performance](https://levelup.gitconnected.com/the-live-dom-is-not-slow-bad-or-wrong-web-developers-are-2bf86c3b9e2e), although the test was done among the real DOM, Doc Fragment and Shadow DOM, we can still get a clue. If developers can handle the real DOM operation carefully, it can be efficient too.
+
+\* _Doc Fragment and Shadow DOM_ are different things from Virtual DOM, we will not get into the details in this article.
+
+#### 2. Virtual DOM is also costly
+
+Virtual DOM is efficient but not free of unnecessary computing resources cost. Like the diff algorithm, when it traverses and compares all the nodes only for a tiny attribute change, that's definitely not a smart way. In addition, writing components in a specific format to create a Virtual DOM and then render it during run time, actually is generating extra work for the browser.
+
+As Rich Harris, the creator of Svelte wrote:
+
+> the virtual DOM is usually fast enough, but with certain caveats. ... Svelte is a compiler that knows at build time how things could change in your app, rather than waiting to do the work at run time.
+
+### Keep it simple
+
+In that case, how can we know is Virtual DOM suitable for us or not? In fact, no need to think too complicated，we can keep it simple.
+
+All the different approaches are made for better development environment, the Virtual DOM is just one of the choices. Like Ryan Carniato said in his article, _all the approaches have its own tradeoffs, rather than the performance or size, we should consider the **developer experience** instead_.
+
+Thus, the most important things is, which way do you and your team like the most.
+
+---
+
+## Conclusion
+
+Is Virtual DOM outdated? **Of course NO!**
+
+The Virtual DOM has been optimized well enough in most scenarios. Still, it's just one of the approaches we can choose. It's never a true or false question about the Virtual DOM.
+
+It's important to follow best practices that have more usage and community support to ensure projects run well. But in such a fast-changing front-end world, why not keep trying out some new things, who knows, maybe you will make it the next best practice.
+
+---
+
+## Further Reading
+
+- _[Virtual DOM is pure overhead](https://svelte.dev/blog/virtual-dom-is-pure-overhead) by Rich Harris_
+- _[Reports of the Virtual DOM’s Death are Greatly Exaggerated](https://javascript.plainenglish.io/reports-of-the-virtual-doms-death-are-greatly-exaggerated-2206d00beead) by Ryan Carniato_
+
+## References
+
+- _Header Photo by [Federica Galli](https://unsplash.com/photos/aiqKc07b5PA?utm_source=unsplash&utm_medium=referral&utm_content=creditShareLink)_
+- _DOM Tree image on [Wikipedia](https://en.wikipedia.org/wiki/Document_Object_Model)_
+- _Diff and Patch image by [Chameera Dulanga](https://blog.bitsrc.io/incremental-vs-virtual-dom-eb7157e43dca)_
+- _Front-end frameworks and libraries Rankings by [stateofjs](https://2021.stateofjs.com/en-US/libraries/front-end-frameworks/)_

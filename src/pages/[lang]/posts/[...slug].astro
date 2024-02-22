@@ -1,40 +1,34 @@
 ---
+import homeImage from '@/assets/home.webp'
 import Layout from '@/layouts/Layout.astro'
 import { getImage } from 'astro:assets'
 import { getCollection } from 'astro:content'
+import type { Locales } from '~/types/i18n'
 
-const allPosts = await getCollection('posts')
 export async function getStaticPaths() {
-  const pages = await getCollection('posts')
-
-  const paths = pages.map((page) => {
-    const [lang, ...slug] = page.slug.split('/')
-    return { params: { lang, slug: slug.join('/') || undefined }, props: page }
+  return (await getCollection('posts')).map((post) => {
+    const [lang, ...slug] = post.slug.split('/') as [Locales, ...string[]]
+    return { params: { lang, slug: slug.join('/') || undefined }, props: post }
   })
-
-  return paths
 }
 
-const { lang } = Astro.params
+const { lang } = Astro.params as { lang: Locales }
 const page = Astro.props
-
-function getAvailableLocales() {
-  return allPosts.filter((post) => post.slug.slice(2) === page.slug.slice(2)).map((post) => post.slug.slice(0, 2)) as (
-    | 'ja'
-    | 'en'
-  )[]
-}
 const { Content } = await page.render()
-const optimizedBackground = await getImage({ src: page.data.image, format: 'webp', quality: 80, width: 1920 })
+
+const availableLocales = (await getCollection('posts'))
+  .filter((post) => post.slug.slice(2) === page.slug.slice(2))
+  .map((post) => post.slug.slice(0, 2)) as Locales[]
+
+const optimizedBackground = await getImage({
+  src: page.data.image || homeImage,
+  format: 'webp',
+  quality: 80,
+  width: 1920,
+})
 ---
 
-<Layout
-  title="TO_SET"
-  image={optimizedBackground.src}
-  description="TO_SET"
-  availableLocales={getAvailableLocales()}
-  lang={lang as 'ja' | 'en'}
->
+<Layout title="TO_SET" image={optimizedBackground.src} description="TO_SET" {availableLocales} {lang}>
   <div
     style={`background-image: url(${optimizedBackground.src});`}
     class="h-[500px] w-full bg-cover bg-center text-white"

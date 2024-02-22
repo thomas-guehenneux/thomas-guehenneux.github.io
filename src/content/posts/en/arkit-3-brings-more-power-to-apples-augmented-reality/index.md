@@ -1,0 +1,122 @@
+---
+date: 2019-06-26
+title: ARKit 3 brings more power to Apple's Augmented Reality
+tags: [ios, arkit, augmented reality]
+image: './header.webp'
+authors:
+  - roxana-jula
+categories:
+  - ios
+  - immersive-technologies
+---
+
+We can already see Apple having a big lead when it comes to augmented reality and the new version of ARKit will push them even further. There are amazing opportunities for AR as a mass market E-commerce solution and we can already see big companies taking advantage of it.
+
+![](/arkit-logo.webp)
+
+## [What is new in ARKit 3?](https://developer.apple.com/augmented-reality/arkit/)
+
+To make AR a mainstream technology, the virtual content on top of the real world needs to look and behave as realistic as possible. There are a lot of major advances that will definitely make the experience more convincing and bring more use cases.
+
+### People Occlusion
+
+What we have seen so far in terms of AR content rendering was directly “on top” of the camera. Apple now uses Machine Learning to recognise multiple people in the frame, even if they are only partially visible. Then, it isolates the pixels with people and using depth estimation it approximates the distances of people. If a person is closer to the camera than the AR content, those pixels will be rendered on top of everything, else they will be rendered behind the AR content.
+
+It is an incredibly smart process that is being done on every frame and it is all possible thanks to Apple’s Neural Engine. This new feature will also enable green screen-style effects in almost any environment.
+
+![](/people-occlusion.webp)
+_Source [Apple](https://developer.apple.com/videos/)_
+
+### Motion Capture
+
+Capturing the motion of a person and mapping it in real time was previously possible only with special equipment. ARKit now provides developers with the power of tracking the human body and having a skeleton representation of it in just a few lines of code. This is also done using Apple’s Neural Engine and will have a big impact on the game development industry.
+
+### Simultaneous front and back camera
+
+World tracking is available on the back camera while face tracking uses the true depth camera from the front and now we can make use of both in the same time. This means we can have 2 new types of experiences like interacting with the AR content using your face or enabling face tracking with device orientation and position.
+
+### Face tracking
+
+ARKit 3 can handle up to 3 faces simultaneously now, and if a person goes out of the view and comes back you can know if it’s the same person. Face filters are incredibly popular not only on social media platforms but also on beauty try-on apps so this improvement will be well received by developers and users.
+
+![](/face-tracking.gif)
+_Source [Apple](https://developer.apple.com/videos/)_
+
+### A new tracking configuration
+
+Developers will now have access to a brand new tracking configuration: AR Positional Tracking Configuration. This will be used when you would want to track only the device’s position in space. It uses a lower resolution for the camera image so you can have a low power consumption on the device.
+
+### New Ray-casting API
+
+To put it simply, this means more accurate placing and support for any kind of surface, not just vertical and horizontal. We will now be able to update the placement of an object if needed when we scanned more and the camera has a better understanding of the environment.
+
+### Collaborative session
+
+With the previous version of ARKit you were able to create and save a world map, but in order to get a collaborative session you had to send it to another device.
+
+With ARKit 3 you can continuously share the world map information between multiple devices across the network.
+
+How does it work? Imagine you are using an AR app with a friend in a room. Each of you starts moving around and detects surfaces in one part of the room. When you start going around the same area of the room, and both of your devices detect the same feature points, you will now be able to merge maps and have access to each others detected feature points. So your device knows about your friend's scene understanding and the other way around. As you continue scanning the room, you continue sharing the data.
+
+AR Anchors are shared as well, which means that if you add virtual content on your device, the other person can see it as well.
+Great potential with those improved collaborative sessions that will open new doors for AR experiences.
+
+### AR Coaching UI
+
+An important part of an AR experience is guiding your users through the process. Sometimes it's difficult for developers to understand different tracking events and show the relevant messages to users. There were guidelines and resources available from Apple but nothing standardised. The new AR Coaching View is a built-in user interface overlay for AR apps that will ensure a good tracking experience. It will be consistent in all apps so users will be familiar with it.
+
+### Scene Understanding Improvements
+
+- **Detect up to 100 images at the same time**
+- **Detect the scale of an image**
+- **Object detection uses Machine Learning now** meaning it is faster and more robust
+- **Plane estimation is also powered by Machine Learning** so the boundaries will be detected faster and more accurately. Walls can now be detected with no feature points thanks to machine learning and you can also get a clarification of the **7 types of plane with ARKit 3: wall, floor, ceiling, table, seat, door or window**
+
+### Visual coherence enhancements
+
+- Ability to **activate and deactivate render options**
+- **Depth of field effect** - this makes the virtual content blend with the environment more naturally by adjusting the focus of the objects to be the same as with the real content through the camera
+- **Motion blur** - on virtual content when the object moves quickly or when you move quickly to add an extra dimension to the realism of the experience. When you don’t have any motion blur on your objects, they stand out from the rest of what you are seeing
+- **HDR environment textures**
+- **Camera grain** - when we are in a low light environment the camera will produce grain and ARKit will now add that grain to the virtual content so it doesn’t stand out
+
+### Record and replay
+
+This is another extra nice feature for developers to be able to record an environment and take it to Xcode for a faster and more convenient AR work setup, great for prototyping.
+
+---
+
+_“People Occlusion and the use of motion capture, simultaneous front and back camera, and multiple face tracking will only be supported on devices using A12/A12X Bionic chips, ANE and TrueDepth Camera.”_
+That means: iPhone XS, iPhone XS Max, iPhone XR and 11-inch and 12.9-inch 2018 iPad Pros. This is restrictive but with a good reason, if you want your users to have the best experience with a futuristic technology like this, you have to take advance of the latest devices and technologies.
+
+[RealityKit](https://developer.apple.com/documentation/realitykit) and [RealityComposer](https://developer.apple.com/augmented-reality/reality-composer/) were also announced and they will directly make the developers' work easier when it comes to creating rich augmented reality experiences.
+ARKit 3 is available as a beta version now together with iOS 13 until the public release in the fall.
+
+---
+
+## 3 cool examples of companies that use AR today
+
+[Wayfair](https://www.wayfair.com/) is an online store for furniture, decor, lighting, outdoor and more and they are also early adopters of the technology. Potential clients can see [life-sized versions of the products directly in their space before buying](https://apps.apple.com/us/app/wayfair-shop-all-things-home/id836767708). The benefits of using AR in this saturated industry are well known and other companies like Ikea, Target, Home Depot, Neybers are placing themselves ahead of competition with augmented reality.
+
+> _“People who tried the View in Room feature on a product page were 3.4x more likely to buy that item.”_ - Wayfair
+
+[Redbubble](https://www.redbubble.com) brings something fun to their users: [AR Enabled Art](https://www.redbubble.com/shop/ar+enabled). Together with the EyeJack Augmented Reality App and 12 artists from all over the world, they created a special collection of products. Using the [Eyejack](https://eyejackapp.com/) app you can activate the artworks to become an immersive augmented reality experience.
+
+{{ youtube-link="2lat70Aa3tU" }}
+
+[L’Oréal](https://www.loreal.com/) expanded into beauty tech last year by acquiring [Modiface](http://modiface.com/), a well known 3D virtual make-up, colour and skin diagnosis service. There are multiple apps now powered by Modiface’s augmented reality technology like Facebook, Snapchat, Instagram, Garnier, Sephora and the latest one being Amazon.
+
+<blockquote align="center" class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">We are thrilled about the launch of Amazon&#39;s first-ever beauty virtual try-on experience powered by ModiFace! <a href="https://t.co/ppu5E1COyp">pic.twitter.com/ppu5E1COyp</a></p>&mdash; ModiFace (@ModiFace) <a href="https://twitter.com/ModiFace/status/1136645525044957185?ref_src=twsrc%5Etfw">June 6, 2019</a></blockquote>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+---
+
+_Fun fact: Apple takes the 3rd place as an industry smart glasses platform after Microsoft HoloLens and Magic Leap, even if they haven’t even launched any AR glasses yet. According to the [research firm Digi-Capital’s and Augmented World Expo’s report](https://www.digi-capital.com/reports/#augmented-virtual-reality)_
+
+## Resources
+
+- [Apple Augmented Reality](https://developer.apple.com/augmented-reality/)
+- [Redbubble collaboration with Eyejack](https://blog.redbubble.com/2018/10/a-collaboration-with-eyejack/)
+- [L'oréal acquires Modiface further expanding its worldwide expertise in beauty tech](https://mediaroom.loreal.com/en/loreal-acquires-modiface-further-expanding-its-worldwide-expertise-in-beauty-tech/)
+
+_Article Photo by [Patrick Schneider](https://unsplash.com/photos/87oz2SoV9Ug)_

@@ -3,13 +3,14 @@ import BaseHead from '@/components/BaseHead.astro'
 import Header from '@/components/Header.astro'
 import Footer from '@/components/Footer.astro'
 import { ViewTransitions } from 'astro:transitions'
+import type { Locales } from '~/types/i18n'
 
 interface Props {
   title: string
   description: string
   image?: string
-  availableLocales: ('ja' | 'en')[]
-  lang: 'ja' | 'en'
+  availableLocales: Locales[]
+  lang: Locales
 }
 
 const { title, description, image, availableLocales, lang } = Astro.props

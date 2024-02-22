@@ -1,0 +1,238 @@
+---
+date: 2023-04-06
+title: "SQL wildcard operators and how to escape them"
+tags: [sql, mysql, typeorm, nestjs, guide]
+image: './header.webp'
+authors:
+  - tanvir-ahmed
+---
+
+One of the most powerful features of SQL (Structured Query Language) is its ability to search and retrieve data from databases using wildcard operators. A wildcard character in SQL is used to replace a single or set of characters in any string, which can be very useful for comparing string data precisely. These operators are mostly used with the SQL LIKE operators. The LIKE operator and the WHERE clause can be used together to search data throughout the database.
+
+## Content
+
+- SQL wildcard operators
+- An in-depth discussion on various wildcard operators with examples
+- Escaping wildcard operators
+
+## Introduction
+
+As a programmer working on a real-time application, we often need to search for data that needs to be manipulated in more ways than some simple exact matching query. The reason for this complex manipulation is usually to retrieve desired information with added filters.
+
+Let's assume we have a user base integrated into our application and we need a suggestion list of those users whose username starts with ‘Ta’ or ends with ‘H’. In this kind of scenario, we can use wildcard operators to resolve complex queries. It is similar to Regular Expressions (Regex) where we search for patterns.
+
+SQL Wildcard characters are special characters that represent any other character or a range of characters in a query. While these characters are useful for complex searches, they can also cause problems if not used correctly. This article will cover the different SQL wildcard characters and how to escape them when needed.
+
+## SQL Wildcard Operators
+
+Below are the wildcard operators of SQL with examples
+
+**% operator**
+
+The % operator represents zero or more characters
+
+For example the below query,
+
+```swift
+SELECT * FROM Users WHERE username LIKE 'Ta%' ;
+```
+
+Will find users whose username starts with **Ta** followed by zero or more characters after it, so it will find usernames like **‘Tanvir’** **‘Tak’** **‘Ta’**
+
+**\_ operator**
+
+The \_ or underscore operator is used to represent exactly one character in a string.
+
+For example,
+
+```swift
+SELECT * FROM Users WHERE username LIKE 'A_' ;
+```
+
+The above query will find usernames that start with **A** and are followed by only one single character, so it will find usernames like **‘An’** **‘Ab’** and so on.
+
+**[] operator**
+
+The [ ] operator is used to represent any single character within the brackets
+
+So the query
+
+```swift
+SELECT * FROM Users WHERE username LIKE 't[ao]n' ;
+```
+
+Will find usernames like **‘tan’** and **‘ton’**
+
+**^ operator**
+
+The ^ operator is used to represent any single character that is not within the brackets
+
+So the query
+
+```swift
+ SELECT * FROM Users WHERE username LIKE 't[^oe]n' ;
+```
+
+will find username **‘tan’** and not **‘ton’** or **‘ten’**
+
+**- operator**
+
+The - operator will represent any single character that is within the range, below query
+
+```swift
+SELECT * FROM Users WHERE username LIKE 't[a-c]n' ;
+```
+
+will find a user with the username **‘tan’**, **‘tbn’**, **‘tcn’**
+
+## Some other wildcard operators from different database
+
+**PostgreSQL and MySQL**
+
+- % - zero or more characters
+- \_ - single character
+
+**Oracle**
+
+- % - zero or more characters
+- \_ - means a single character
+- [] - single character within the brackets
+- {} - escaped character
+
+## Need of wildcard operators
+
+As we have seen from the above examples, SQL wildcard operators are extremely useful to search for complex data whether it's a simple string or a string of alphanumeric characters.
+
+They play a vital role in speeding up queries and obtaining quick results.
+
+For a real-time example let's look at the table below
+
+| id  | First Name | Last Name  | Username | Department  |
+| --- | ---------- | ---------- | -------- | ----------- |
+| 1   | Aamir      | Hamza      | aamir    | Accounts    |
+| 2   | Ayesha     | Naazier    | ayesha   | Accounts    |
+| 3   | Tanvir     | Ahmed      | tanvir   | Engineering |
+| 4   | Taskin     | Rehman     | taaskeen | Engineering |
+| 5   | Arturo     | Zehan      | zehan    | Engineering |
+| 6   | Aamir      | Waaleed    | amir1    | Engineering |
+| 7   | Tanveer    | Al-Rasheed | tanveer  | Engineering |
+
+Now, if we look at the table we will see, multiple names are duplicates by the first name but have key differences in username.
+
+So if we have a search bar on our application where we want to see a list of **Aamir’s** by searching with their usernames,
+
+We can simply execute a query
+
+```swift
+SELECT * FROM Users WHERE username LIKE 'A%' ;
+```
+
+and this query will make a list of users who have usernames starting with **‘A’** and will follow up with names like **‘aamir’**, **‘amir’**, **‘amdad’** etc.
+
+Without using **LIKE** clause and wildcard operator pairing we could’ve gotten a **“no user found”** message from our DB.
+
+## Why do we need to escape wildcard operators?
+
+Now so far we know, having wildcard operators in our search operation is a good thing, then why would there be a need to escape them?
+
+Let's look at the above user table a bit differently now
+
+| id  | First Name | Last Name  | Username | Department  |
+| --- | ---------- | ---------- | -------- | ----------- |
+| 1   | Aamir      | Hamza      | aamir    | Accounts    |
+| 2   | Ayesha     | Naazier    | ayesha   | Accounts    |
+| 3   | Tanvir     | Ahmed      | tanvir   | Engineering |
+| 4   | Taskin     | Rehman     | taaskeen | Engineering |
+| 5   | Arturo     | Zehan      | zeh%an   | Engineering |
+| 6   | Aamir      | Waaleed    | a-amir   | Engineering |
+| 7   | Tanveer    | Al-Rasheed | t^nvir   | Engineering |
+
+If you look at the table closely, specially at the username column you will notice special characters which matches with some of the wildcard operators we were discussing earlier.
+
+Now, what's wrong with those usernames? seems perfectly fine if we allow special characters in our DB for usernames right? But no, In a real-time situation when you are querying usernames similar to the table above using the LIKE clause, you might get a similar error like this.
+
+```swift
+ ERR_PARSE_ERROR: You have an error in your SQL syntax; check for the right syntax to use near '\"%\'
+```
+
+So to escape this we can use a simple solution.
+
+## Escaping wildcard operators
+
+In SQL, escaping a wildcard character is used to indicate that a wildcard character should be treated as a literal character rather than as a wildcard one. To escape a character we usually use the backslash ' \\ ', but it may be different depending on the specific SQL database you are using.
+
+Here's an example of how to use the escape character in a SQL find query:
+
+```swift
+SELECT username
+FROM users
+WHERE username LIKE '\%a%';
+```
+
+In this example, the escape character ' \\ ' is used before the percent sign ' % ' in the pattern to indicate that the % symbol should be treated as a literal character and not a wildcard. This query will match usernames containing the string '%a' anywhere in the username, regardless of whether the username starts with a or % symbol.
+
+Another solution if you are working with **Typeorm** and **Nestjs** (like I do) and taking dynamic input:
+
+```swift
+import { EntityManager, getConnection } from 'typeorm';
+
+async function findUsernamesWithSpecialCharacters(username: string) {
+  const connection = await getConnection();
+  const entityManager = connection.createEntityManager();
+
+  const usernames = await entityManager
+    .createQueryBuilder(User, 'user')
+    .where("user.username LIKE :username", { username: `%${username}%` })
+    .getMany();
+
+  return usernames;
+}
+```
+
+Or another solution below where you can specify which wildcard operators you want to escape specifically:
+
+```swift
+import { EntityManager, getConnection } from 'typeorm';
+
+async function findUsernamesWithSpecialCharacters(username: string) {
+  const connection = await getConnection();
+  const entityManager = connection.createEntityManager();
+  let escapedUsername = username.replace(/[%_^]/g, '\\$&');
+  escapedUsername = `%${escapedUsername}%`;
+
+  const usernames = await entityManager
+    .createQueryBuilder(User, 'user')
+    .where("user.username LIKE :username", { username: escapedUsername })
+    .getMany();
+
+  return usernames;
+}
+```
+
+Here in this part of the code _username.replace(/[%_^]/g, '\\$&') specifically ‘/[%_^]/g’\ this part is giving you the customization you need for the wildcards.
+
+One last solution if you follow a DTO-based standardized practice to code as we do at Monstarlab for all our Nodejs projects.
+
+You simply put this solution in your input DTO and the wildcard operators will be taken care of:
+
+```swift
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
+  @Transform(
+    ({ value }: TransformFnParams) =>
+      isString(value) && value?.trim() && value.replace(/[%_^]/g, '\\\\$&'),
+  )
+  username: string;
+```
+
+Thank you for reading my article. I hope it will help you write sophisticated SQL queries.
+
+## Resources
+
+- [SQL LIKE Operator](https://www.tutorialspoint.com/sql/sql-like-clause.htm)
+- [SQL Wildcards](https://www.tutorialspoint.com/sql/sql-wildcards.htm)
+- [Typeorm query builder](https://typeorm.io/select-query-builder)
+- [Class Transformer](https://www.thisdot.co/blog/combining-validators-and-transformers-in-nestjs)_
+
+_Article Photo by [Ricardo Gomez Angel](https://unsplash.com/photos/j5gCOKZdm6I)_

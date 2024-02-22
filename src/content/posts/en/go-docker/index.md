@@ -1,0 +1,231 @@
+---
+date: 2019-09-09
+title: Go Docker
+tags: [go, docker]
+image: './header.webp'
+authors:
+  - tanveer-hassan
+---
+
+Let’s say you are starting a new project. You have selected the language to be Go and the database Mongodb. You already have both set up in your computer be it a Mac or a Windows or a Linux machine. However, you had installed the tools a long time ago and both are now backdated. You want the new project to use the latest versions; you also need the older versions for the old (still running) projects you need to work on now and then. What do you do?
+
+Buy new computers for each new project?
+
+No.
+
+However, you can imitate a new computer for each project, using virtual machines. We spin up virtual machines for each project to give it its own environment according to the requirements. Docker is one way to achieve this. And currently a very popular one too.
+
+If you don’t know what Docker is or how it works I suggest you to read their own overview of the software [here](https://www.docker.com/what-docker).
+
+> Only independent container platform that enables organizations to seamlessly build, share and run any application, anywhere — from hybrid cloud to the edge.  
+> — [https://www.docker.com/why-docker](https://www.docker.com/why-docker)
+
+In this article I will show a brief overview of a simple docker setup for Go application development.
+
+To get started, you need Docker installed in your system. Get the community edition [here](https://www.docker.com/community-edition).
+
+### Project setup
+
+Creating something too complex for this exercise will take focus away from the Docker configuration to application architecture and business logic. So I’ll stick to a “Hello world” implementation; let’s say everything else other than mainly the Docker part of the application is abstracted away.
+
+_Project structure:_
+
+```shellscript
+.
+├── .env
+├── .gitignore
+├── main.go
+├── go.mod
+├── docker-compose.yml
+├── dev.dockerfile
+└── prod.dockerfile
+```
+
+_Initialize a new go module:_
+
+Run this in the root directory and it will create the _go.mod_ file.
+
+```shellscript
+go mod init github.com/war1oc/go-docker
+```
+
+Replace _war1oc_ with your Github username.
+
+This creates a _go.mod_ file with the following contents:
+
+```go
+module github.com/war1oc/go-docker
+
+go 1.13
+```
+
+_main.go:_
+
+```go
+package main
+
+import “fmt”
+
+func main() {
+    fmt.Println(“Hello, world!”)
+}
+```
+
+If I run the app now, I get “Hello, world!” printed on the console.
+
+### Development Docker Environment
+
+This is my go to Dockerfile for development environment:
+
+```dockerfile
+FROM golang:1.13-buster
+
+RUN go get github.com/cespare/reflex
+
+WORKDIR /app
+
+COPY . .
+
+ENTRYPOINT [“reflex”, “-c”, “reflex.conf”]
+```
+
+As of writing this, 1.13 was the latest Go version. I also use [reflex](https://github.com/cespare/reflex) for restarting the server when files change; this helps a lot during development as the code is automatically reloaded.
+
+The _reflex.conf_ file:
+
+```shellscript
+-r ‘(\.go$|go\.mod)’ -s go run .
+```
+
+This means whenever a *.go* or _go.mod_ file changes do **go run .**
+
+This is all I need to put in my development Dockerfile.
+
+Build an image and run a container from this:
+
+```shellscript
+docker build -t go-docker -f dev.dockerfile .
+
+docker run -it --rm -v `pwd`:/app --name go-docker go-docker
+```
+
+This will start the application in a container named _go-docker_ from the image named _go-docker_ and mount current directory on the host to the _/app_ directory on the container. Any changes in the host project directory will be reflected to the container _/app_ directory due to the volume. And if there is a file change, reflex will automatically restart the application.
+
+#### Docker Compose
+
+I use docker-compose with my projects as there are almost always different components involved (i.e., databases, swagger-ui, etc).
+
+The _docker-compose.yml_ file:
+
+```yaml
+version: “3”
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: dev.dockerfile
+    volumes: — .:/app
+```
+
+Now run the application using `docker-compose up`. This is how you’ll usually start you app during development.
+
+This docker-compose file is very tiny. Generally you are going to use docker-compose to **compose** several components together. An example of a more practical docker-compose file:
+
+```yaml
+version: "3"
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: dev.dockerfile
+    ports:
+      - 8080:1323 # host:container
+    volumes:
+      - .:/app
+    environment:
+      - AWS_REGION
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - APP_ENV
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    ports:
+      - 8081:8080
+    environment:
+      - API_URL
+
+  mongo:
+    image: mongo:4
+    volumes:
+      - mongodb_data:/data/db
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - 8181:8081
+
+volumes:
+  mongodb_data:
+```
+
+Here you can see we have four components to our system. The server which runs at port 1323 forwarded to port 8080 on the host. A swagger-ui container for api documentation. A Mongodb container and a Mongo Express container for database. The volume of the Mongodb data ensures our data is persisted even if the Mongo container is destroyed.
+
+When running the system using docker-compose, we can access components from inside other components by just referring the service name. For example, to access the mongo container, we don’t need to use the container’s ip address, rather we can just use _mongodb://mongo_ as the connection string.
+
+If we set up auth in our Mongodb database, we could use the connection string as the following:  
+_mongodb://username:passwd@mongo_
+
+We can also pass environment variables to our containers as you may have already noticed. We are passing AWS credentials to the server container. You can create a *.env* file in the root directory and place the environment variables there. Make sure you add the file to *.gitignore*; you don’t want these secrets to be in the version control.
+
+A sample *.env* file:
+
+```shellscript
+API_URL=[http://localhost:8080/swagger.yaml](http://localhost:8080/swagger.yaml)
+AWS_ACCESS_KEY_ID=YOUR_AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET_ACCESS_KEY
+AWS_REGION=YOUR_AWS_REGION
+```
+
+Docker compose will by default look for a *.env* file in the root directory of your project and pass those to the mapped ones on the _docker-compose.yml_ file.
+
+### Production Docker Environment
+
+For production, I build the image in two stages. The first stage builds the app, the built app and required files (i.e., configuration files) are copied to the second stage which runs the app in an alpine linux based container. Alpine linux has a tiny size and reduces the size of the final image drastically.
+
+```dockerfile
+# build stage
+FROM golang:1.13-alpine AS builder
+WORKDIR /app
+COPY . .
+RUN apk add --no-cache git
+RUN go build -v -o go-docker .
+
+# final stage
+FROM alpine:latest
+WORKDIR /root
+RUN apk --no-cache add ca-certificates
+COPY --from=builder /app/go-docker .
+ENTRYPOINT ./go-docker
+```
+
+The final image size is 6.97MB only. This is absolutely fantastic because it reduces cost for storing these images in the cloud.
+
+As a comparison, our development environment image size was 832MB. This is because it was a Debian 10 base image.  
+We can use Alpine linux for development environment as well if we want to, but it isn’t really necessary. We would also need to add several build tools which will eventually increase the image size.
+
+#### Deploying to production
+
+You can take your production image and deploy it to a swarm cluster. You can build the image and push it to a remote repository such as [AWS’s ECR](https://aws.amazon.com/ecr/), and pull it from your server to update the service.
+
+If you want to manage the cluster yourself, I highly recommend you go through the documentation for [Docker Swarm](https://docs.docker.com/engine/swarm/); and use it.
+
+Most of the time, I prefer running the cluster in a managed service such as [AWS’s ECS](https://aws.amazon.com/ecs/). This saves both time and effort in creating and managing the cluster. A managed service also provides a lot of tools off the shelf such as viewing logs and metric. We can create revisions of task definitions and update the services with zero downtime.
+
+### Conclusion
+
+I have been using Docker for a while now with multiple stacks and can assure you that it will ease the life of everyone in your team if used well. Getting new team members on-boarded can become a breeze when using Docker.
+
+Find the source code for the above example [here](https://github.com/war1oc/go-docker).
