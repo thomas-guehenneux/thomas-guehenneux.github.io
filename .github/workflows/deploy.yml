@@ -49,7 +49,7 @@ jobs:
         run: bun install
 
       - name: Copy already optimized images from /dist/_astro to /node_modules/.astro/assets if cache has been restored
-        if: steps.cache.outputs.cache-hit == 'true'
+        if: [ -d dist ] && echo 'true' || echo 'false'
         run: |
           mkdir -p node_modules/.astro/assets/ 
           cp dist/_astro/* node_modules/.astro/assets/
