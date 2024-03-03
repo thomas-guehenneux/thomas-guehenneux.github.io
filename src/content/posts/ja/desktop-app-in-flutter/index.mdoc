@@ -1,0 +1,721 @@
+---
+title: "Flutterを使用したデスクトップアプリの構築：チュートリアル"
+tags: [flutter, desktopApp, tutorial]
+header: src/content/posts/ja/desktop-app-in-flutter/header.webp
+authors:
+  - shaikh-huma
+categories:
+  - flutter
+date: 2023-09-04
+---
+## はじめに
+デスクトップ向けFlutter電卓アプリチュートリアルへようこそ！このチュートリアルでは、Googleの強力なクロスプラットフォームアプリケーション開発フレームワークであるFlutterを使用して、完全な機能を備えた電卓アプリを作成する方法を案内します。
+
+電卓は、毎日何百万人もの人々によって使用される必須のツールです。Flutterを使って電卓アプリを作成することで、デスクトップアプリ開発の基礎を学ぶだけでなく、使いやすく効率的なインターフェースの構築についても貴重な知見を得ることができます。
+
+このチュートリアルブログでは、ゼロから始めて、豊富な機能を備えた電卓アプリを開発するために必要な手順をすべてカバーします。Flutterの基礎知識を持っていることを前提としていますが、Flutter初心者の場合でも心配しないでください！コンセプトとコードの断片を初心者向けに説明します。
+
+旅は、Flutterデスクトップアプリ開発のための開発環境のセットアップから始まります。インストールプロセスを案内し、必要なツールと依存関係を準備して電卓アプリのコーディングを開始できるようにします。
+
+次に、電卓のユーザーインターフェースの設計とレイアウトについて詳しく説明します。さまざまなFlutterウィジェットとレイアウトオプションを探求し、電卓用の視覚的に魅力的で直感的なUIを作成します。ユーザーの入力を処理し、数学的な操作を実行し、リアルタイムで結果を表示する方法を学びます。
+
+チュートリアル全体を通じて、コードの組織化、再利用性、保守性についてのベストプラクティスに焦点を当てます。コードベースを効果的に構造化し、関心事を分離し、Flutterのウィジェット構成モデルを活用してスケーラブルで拡張可能な電卓アプリを構築する方法を学びます。
+
+このチュートリアルシリーズの最後までに、Flutterを使用してデスクトップ向けの完全な電卓アプリを構築するための確固たる理解が得られます。電卓アプリをさらに拡張やカスタマイズするためのスキルを身につけることができ、他の種類のデスクトップアプリケーションの構築にも挑戦することができます。
+
+それでは、Flutterデスクトップアプリ開発のこのエキサイティングな旅に備えて、自分自身の電卓アプリを学び、作成し、楽しむ準備をしましょう。Flutterの世界に飛び込んでみましょう！
+
+## 開発環境のセットアップ
+
+設定の有効化：
+
+プロジェクトのルートフォルダに移動し、macOS用のコマンドを入力します。
+```dart
+flutter config --enable-macos-desktop
+```
+
+Linuxの場合は以下のコマンドを入力します。
+```dart
+flutter config --enable-linux-desktop
+```
+
+Windowsの場合は以下のコマンドを入力します。
+```dart
+flutter config --enable-windows-desktop
+```
+
+ターミナルは再起動を求めるかもしれません。再起動後には変更はありません。
+次に、ターミナルで以下のコマンドを入力します。
+
+```dart
+flutter create .
+```
+
+そして、次のコマンドを実行します。
+
+```dart
+flutter run -d macos
+```
+
+プラットフォームに応じて、macosの部分を置き換えることができます。
+
+上記のコマンドを実行すると、macos、linux、windowsのフォルダが表示され、以下の画面が表示されます：
+
+![](src/content/posts/ja/desktop-app-in-flutter/initial_screen.webp)
+## ユーザーインターフェースの設計
+
+### ステートクラス
+
+CalculatorStateクラスは、Flutterアプリケーションにおける電卓の状態を表します。このクラスにはinputとresultの2つのプロパティがあります。
+
+input：電卓でユーザーが入力した現在の入力を表します。数値、演算子、数式などのユーザーの入力を保持するString型です。
+
+result：ユーザーの入力に基づいて計算された結果を表します。入力に対して行われた計算の結果を保持するString型です。
+
+CalculatorStateクラスには、inputとresultのプロパティを初期化するコンストラクタがあります。コンストラクタはオプションの名前付きパラメータinputとresultを取ります。これらのパラメータは提供されない場合、デフォルトで空の文字列（''）となります。
+```dart
+class CalculatorState {
+  final String input;
+  final String result;
+
+  CalculatorState({this.input = '', this.result = ''});
+}
+```
+
+### Buttonウィジェット
+
+`Button`クラスは、カスタマイズ可能なプロパティを持つ電卓のボタンを表すカスタムのFlutterウィジェットです。コードの異なる部分を見て、その機能を理解しましょう。
+
+- プロパティ：
+    - `buttonColor`：ボタンの背景色を表します。
+    - `textColor`：ボタンのテキストの色を表します。
+    - `buttonText`：ボタンに表示されるテキストを表します。
+    - `buttontapped`：ボタンがタップされたときに呼び出されるコールバック関数を表します。
+
+- コンストラクタ：
+    - `Button`クラスには、名前付きパラメータを受け取るコンストラクタがあります：
+        - `buttonColor`、`textColor`、`buttonText`：ボタンの外観をカスタマイズするためのオプションのパラメータです。
+        - `buttontapped`：ボタンがタップされたときに呼び出される`VoidCallback`を必要とするパラメータです。`VoidCallback`は値を返さず、ボタンがタップされたときに呼び出される関数です。
+
+この`Button`ウィジェットを使用すると、`buttonColor`、`textColor`、`buttonText`、`buttontapped`コールバックなどの必要なプロパティを指定することで、FlutterのUI内にボタンを作成することができます。これにより、スタイルや動作をカスタマイズできる再利用可能なボタンを作成することができます。
+```dart
+import 'package:flutter/material.dart';
+class Button extends StatelessWidget {
+
+  final Color? buttonColor;
+  final Color? textColor;
+  final String? buttonText;
+  final VoidCallback buttontapped;
+
+  const Button({
+    Key? key,
+    this.buttonColor,
+    this.textColor,
+    required this.buttonText,
+    required this.buttontapped,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: buttontapped,
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: ClipRRect(
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(56),
+              color: buttonColor ?? Colors.grey,
+            ),
+            child: Center(
+              child: Text(
+                buttonText ?? '',
+                style: TextStyle(
+                  color: textColor ?? Colors.black,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+```
+
+### Calculator画面
+
+計算機に含まれるボタンのリスト:
+
+```dart
+final List<String> buttons = [
+  'C',
+  '+/-',
+  '%',
+  'DEL',
+  '7',
+  '8',
+  '9',
+  '/',
+  '4',
+  '5',
+  '6',
+  'x',
+  '1',
+  '2',
+  '3',
+  '-',
+  '0',
+  '.',
+  '=',
+  '+',
+];
+```
+
+提供されたコードスニペットは、`Container`内にボタンが含まれる`GridView`の構築を表しています。以下、詳細を説明します。
+
+```dart
+Container(
+  child: GridView.builder(
+    itemCount: buttons.length,
+    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 4,
+    ),
+    itemBuilder: (BuildContext context, int index) {
+      if (index == 0) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+        );
+      } else if (index == 1) {
+        return Button(
+          buttonText: buttons[index],
+          buttontapped: () {},
+        );
+      } else if (index == 2) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+        );
+      } else if (index == 3) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+        );
+      } else if (index == 18) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+          buttonColor: Colors.orange,
+          textColor: Colors.white,
+        );
+      } else {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+          buttonColor: isOperator(buttons[index])
+              ? Colors.orange
+              : Colors.white30.withOpacity(0.3),
+          textColor: isOperator(buttons[index])
+              ? Colors.white
+              : Colors.black,
+        );
+      }
+    },
+  ),
+),
+```
+
+上記のコードは、計算機の画面を作成するために使用される`GridView`を示しています。
+
+```dart
+Container(
+  child: GridView.builder(
+    itemCount: buttons.length,
+    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 4,
+    ),
+    itemBuilder: (BuildContext context, int index) {
+      if (index == 0) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+        );
+      } else if (index == 1) {
+        return Button(
+          buttonText: buttons[index],
+          buttontapped: () {},
+        );
+      } else if (index == 2) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+        );
+      } else if (index == 3) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+        );
+      } else if (index == 18) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+          buttonColor: Colors.orange,
+          textColor: Colors.white,
+        );
+      } else {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+          buttonColor: isOperator(buttons[index])
+              ? Colors.orange
+              : Colors.white30.withOpacity(0.3),
+          textColor: isOperator(buttons[index])
+              ? Colors.white
+              : Colors.black,
+        );
+      }
+    },
+  ),
+),
+```
+
+以下のコードは、`buttons`リストに基づいて動的に生成されたボタンの`GridView`を作成します。動作を理解するために、コードの各部分を見ていきましょう。
+
+```dart
+Container(
+  child: GridView.builder(
+    itemCount: buttons.length,
+    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 4,
+    ),
+    itemBuilder: (BuildContext context, int index) {
+      if (index == 0) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+        );
+      } else if (index == 1) {
+        return Button(
+          buttonText: buttons[index],
+          buttontapped: () {},
+        );
+      } else if (index == 2) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+        );
+      } else if (index == 3) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+        );
+      } else if (index == 18) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+          buttonColor: Colors.orange,
+          textColor: Colors.white,
+        );
+      } else {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+          buttonColor: isOperator(buttons[index])
+              ? Colors.orange
+              : Colors.white30.withOpacity(0.3),
+          textColor: isOperator(buttons[index])
+              ? Colors.white
+              : Colors.black,
+        );
+      }
+    },
+  ),
+),
+```
+
+上記のコードは、`Container`内にボタンが含まれる`GridView`を作成します。
+
+```dart
+Container(
+  child: GridView.builder(
+    itemCount: buttons.length,
+    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 4,
+    ),
+    itemBuilder: (BuildContext context, int index) {
+      if (index == 0) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+        );
+      } else if (index == 1) {
+        return Button(
+          buttonText: buttons[index],
+          buttontapped: () {},
+        );
+      } else if (index == 2) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+        );
+      } else if (index == 3) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+        );
+      } else if (index == 18) {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+          buttonColor: Colors.orange,
+          textColor: Colors.white,
+        );
+      } else {
+        return Button(
+          buttontapped: () {},
+          buttonText: buttons[index],
+          buttonColor: isOperator(buttons[index])
+              ? Colors.orange
+              : Colors.white30.withOpacity(0.3),
+          textColor: isOperator(buttons[index])
+              ? Colors.white
+              : Colors.black,
+        );
+      }
+    },
+  ),
+),
+```
+
+これにより、`buttons`リストに基づいてボタンのグリッドが`Container`内に生成されます。特定のボタンには特定のカスタマイズがあり、ボタンが演算子であるかどうかに基づいて動的なスタイリングが行われます。
+
+```dart
+bool isOperator(String x) {
+  if (x == '/' || x == 'x' || x == '-' || x == '+' || x == '=') {
+    return true;
+  }
+  return false;
+}
+```
+
+isOperatorメソッド：
+
+このメソッドは、与えられたボタンのラベルが演算子（/、x、-、+、=）であるかどうかを判定するためのヘルパー関数です。
+ボタンのラベルが演算子である場合はtrueを返し、それ以外の場合はfalseを返します。
+
+以下は、入力スペースと結果スペースのコードです。
+
+```dart
+Expanded(
+  child: SizedBox(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        Container(
+          padding: const EdgeInsets.all(20),
+          alignment: Alignment.centerRight,
+          child: Text(
+            '',
+            style: const TextStyle(fontSize: 18, color: Colors.white),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(15),
+          alignment: Alignment.centerRight,
+          child: Text(
+            '',
+            style: const TextStyle(
+              fontSize: 30,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+```
+
+## Viewモデル
+
+提供されたコードは、`CalculatorViewModel`クラスを定義しています。このクラスは、StateNotifier<CalculatorState>を拡張しています。このクラスは、計算機アプリケーションの状態とロジックを管理する責任を持ちます。コードを分解して、その機能を理解しましょう。
+
+```dart
+class CalculatorViewModel extends StateNotifier<CalculatorState> {
+  CalculatorViewModel() : super(CalculatorState());
+}
+```
+
+clearメソッドは、計算機の入力をクリアし、結果を '0'に設定します。新しいCalculatorStateのインスタンスを使用して、状態を更新します。これには、state = CalculatorState(input: '', result: '0')というコードが使われます。
+
+```dart
+void clear() {
+  state = CalculatorState(input: '', result: '0');
+}
+```
+
+equalPressedメソッドは、入力式を評価し、計算結果を更新する責任を持ちます。
+- 状態から入力を取得し、'x'を '*'に置き換えるための処理を行います。
+- 式は、math_expressionsパッケージのParserクラスを使用してパースされます。
+- パースされた式は、ExpressionクラスとContextModelを使用して評価されます。
+- 結果はdouble値として取得され、文字列に変換されてanswer変数に格納されます。
+- 最後に、修正された入力式と計算された結果で状態が更新されます。
+
+```dart
+void equalPressed() {
+  String finaluserinput = state.input;
+ 
+
+```dart
+finaluserinput = state.input.replaceAll('x', '*');
+
+Parser p = Parser();
+Expression exp = p.parse(finaluserinput);
+ContextModel cm = ContextModel();
+double eval = exp.evaluate(EvaluationType.REAL, cm);
+final answer = eval.toString();
+state = CalculatorState(input: finaluserinput, result: answer);
+}
+```
+
+updateInputメソッドは、与えられた操作（ボタンのラベル）を計算機の入力に追加する責任を持ちます。
+状態から現在の入力を取得し、操作を連結し、更新された入力をinput変数に割り当てます。
+その後、状態を更新します。結果は変更せずに、入力が変更されます。
+
+```dart
+void updateInput(String operation) {
+  var input = state.input;
+  input += operation;
+  state = CalculatorState(input: input, result: state.result);
+}
+```
+
+deleteメソッドは、計算機の入力から最後の文字を削除します。
+状態から現在の入力を取得し、最後の文字を除いた入力のサブストリングを作成します。
+修正された入力はfinalInput変数に割り当てられます。
+その後、状態を更新します。結果は変更せずに、入力が変更されます。
+
+```dart
+void delete() {
+  var input = state.input;
+  final finalInput = input.substring(0, input.length - 1);
+  state = CalculatorState(input: finalInput, result: state.result);
+}
+```
+
+CalculatorViewModelクラスは、ボタンの押下、計算の実行、および計算機の状態の管理を担当します。StateNotifierから継承したstateプロパティを使用して、状態を更新し、状態の変更をリスナーに通知します。
+
+## UIとview modelの接続
+
+提供されたコードでは、`flutter_riverpod`パッケージの`StateNotifierProvider`を使用して、`calculatorProvider`を定義します。このプロバイダは、`CalculatorViewModel`クラスのインスタンスを作成・管理し、その関連する`CalculatorState`型の状態に他の部分からアクセスできるようにします。
+
+以下はコードの説明です：
+
+```dart
+final calculatorProvider =
+    StateNotifierProvider<CalculatorViewModel, CalculatorState>(
+  (ref) => CalculatorViewModel(),
+);
+```
+
+- `calculatorProvider`は`final`キーワードを使用して定数として宣言されています。
+- `StateNotifierProvider`のコンストラクタには2つの型パラメータが指定されています：`CalculatorViewModel`と`CalculatorState`。
+- 最初の型パラメータ`CalculatorViewModel`は、提供される状態通知者のタイプを指定します。この場合、`CalculatorViewModel`クラスのインスタンスです。
+- 2番目の型パラメータ`CalculatorState`は、状態通知者によって管理される状態の型を指定します。ここでは、`CalculatorState`クラスです。
+- コンストラクタの引数`(ref) => CalculatorViewModel()`は、プロバイダが最初にアクセスされたときに実行されるコールバック関数です。`CalculatorViewModel`クラスの新しいインスタンスを作成して返します。`ref`パラメータはプロバイダのコンテナへのアクセスを提供し、他のプロバイダの読み取りや追加のセットアップを行うために使用できます。
+
+`calculatorProvider`が定義された後、アプリケーションの他の部分は`ProviderContainer`を使用するか、`flutter_riverpod`が提供する`ConsumerWidget`または`Consumer`ウィジェットを使用して、`CalculatorViewModel`インスタンスとそれに関連する`CalculatorState`にアクセスできます。これにより、コンポーネントは計算機の状態と対話し、ユーザーの操作や状態の変更に基づいて更新をトリガーすることができます。
+
+UIで状態をアクセスし、それを反映させるために、build関数に以下を追加します：
+
+```dart
+final viewModel = ref.read(calculatorProvider.notifier);
+final state = ref.watch(calculatorProvider);
+```
+
+スクリーンの完全なコードは以下の通りです：
+
+```dart
+final calculatorProvider =
+    StateNotifierProvider<CalculatorViewModel, CalculatorState>(
+  (ref) => CalculatorViewModel(),
+);
+
+class CalculatorScreen extends ConsumerStatefulWidget {
+  const CalculatorScreen({Key? key}) : super(key: key);
+
+  @override
+  ConsumerState<CalculatorScreen> createState() =>
+      _CalculatorScreenState();
+}
+
+class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
+  final List<String> buttons = [
+    'C',
+    '+/-',
+    '%',
+    'DEL',
+    '7',
+    '8',
+    '9',
+    '/',
+    '4',
+    '5',
+    '6',
+    'x',
+    '1',
+    '2',
+    '3',
+    '-',
+    '0',
+    '.',
+    '=',
+    '+',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = ref.read(calculatorProvider.notifier);
+    final state = ref.watch(calculatorProvider);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Calculator"),
+      ),
+      backgroundColor: Colors.black,
+      body: Column(
+        children: <Widget>[
+          Expanded(
+            child: SizedBox(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  Container
+
+{
+  "widget": "Scaffold",
+  "appBar": {
+    "widget": "AppBar",
+    "title": {
+      "widget": "Text",
+      "data": "Calculator"
+    }
+  },
+  "backgroundColor": "Colors.black",
+  "body": {
+    "widget": "Column",
+    "children": [
+      {
+        "widget": "Expanded",
+        "child": {
+          "widget": "SizedBox",
+          "child": {
+            "widget": "Column",
+            "mainAxisAlignment": "MainAxisAlignment.spaceEvenly",
+            "children": [
+              {
+                "widget": "Container",
+                "padding": "const EdgeInsets.all(20)",
+                "alignment": "Alignment.centerRight",
+                "child": {
+                  "widget": "Text",
+                  "data": "${state.input}",
+                  "style": "const TextStyle(fontSize: 18, color: Colors.white)"
+                }
+              },
+              {
+                "widget": "Container",
+                "padding": "const EdgeInsets.all(15)",
+                "alignment": "Alignment.centerRight",
+                "child": {
+                  "widget": "Text",
+                  "data": "${state.result}",
+                  "style": "const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.bold)"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "widget": "Expanded",
+        "flex": 3,
+        "child": {
+          "widget": "Container",
+          "child": {
+            "widget": "GridView.builder",
+            "itemCount": "buttons.length",
+            "gridDelegate": {
+              "widget": "SliverGridDelegateWithFixedCrossAxisCount",
+              "crossAxisCount": 4
+            },
+            "itemBuilder": "(BuildContext context, int index) {
+      if (index == 0) {
+        return Button(
+          buttontapped: () {
+            viewModel.clear();
+          },
+          buttonText: buttons[index],
+        );
+      } else if (index == 1) {
+        return Button(
+          buttonText: buttons[index],
+          buttontapped: () {},
+        );
+      } else if (index == 2) {
+        return Button(
+          buttontapped: () {
+            viewModel.updateInput(buttons[index]);
+          },
+          buttonText: buttons[index],
+        );
+      } else if (index == 3) {
+        return Button(
+          buttontapped: () {
+            viewModel.delete();
+          },
+          buttonText: buttons[index],
+        );
+      } else if (index == 18) {
+        return Button(
+          buttontapped: () {
+            viewModel.equalPressed();
+          },
+          buttonText: buttons[index],
+          buttonColor: Colors.orange,
+          textColor: Colors.white,
+        );
+      } else {
+        return Button(
+          buttontapped: () {
+            viewModel.updateInput(buttons[index]);
+          },
+          buttonText: buttons[index],
+          buttonColor: isOperator(buttons[index])
+              ? Colors.orange
+              : Colors.white30.withOpacity(0.3),
+          textColor: isOperator(buttons[index])
+              ? Colors.white
+              : Colors.black,
+        );
+      }
+    }"
+          }
+        }
+      }
+    ]
+  }
+}
+```
+最終的な画像は以下のようになります：
+![](src/content/posts/ja/desktop-app-in-flutter/final_img.webp)
+
+完全なコードはこちらで確認できます：
+[Githubリポジトリ](https://github.com/huma11farheen/desktop_app)
+
+記事の写真は[Moataz Nabil](https://bitrise.io/blog/post/build-and-deploy-a-flutter-desktop-app-for-linux)氏によるものです。
+

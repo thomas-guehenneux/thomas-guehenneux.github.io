@@ -1,0 +1,117 @@
+---
+date: 2020-11-30
+title: Spring Boot integrated RabbitMQ
+tags: [rabbitmq, springboot]
+header: src/content/posts/en/springboot-integrated-rabbitmq/header.webp
+authors:
+  - xianding-wang
+---
+
+Recently I learned about micro services and here is how [Spring Boot](https://spring.io/projects/spring-boot) integrates [RabbitMQ](https://spring.io/guides/gs/messaging-rabbitmq/) to send messages to other micro services.
+
+## Prerequisites
+
+- [IntelliJ IDEA](https://www.jetbrains.com/idea/)
+- [RabbitMQ](https://spring.io/guides/gs/messaging-rabbitmq/)
+
+## Getting started
+
+1.Start by creating an empty Spring Boot project and add the Maven dependency.
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+```
+
+2.Add the RabbitMQ server configuration information in `application.yml`.
+
+```
+spring:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+```
+
+3.Create a new message consumer:
+
+```
+package com.example.springbootmq.message;
+
+import com.example.springbootmq.constant.QueueNameConstant;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.Queue;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.stereotype.Component;
+
+/**
+ * @author donagh.wang
+ * @version 1.0.0
+ * @date 2020/11/4 15:40
+ */
+@Slf4j
+@Component
+public class MessageReceiver {
+
+    @RabbitListener(queuesToDeclare = @Queue(QueueNameConstant.QUEUE_NAME))
+    public void process(String message) {
+        log.info("The receiver receives the message: {}", message);
+    }
+}
+```
+
+This is a simple example, in actual development MQ also needs to be bound with exchange, routing-key, etc.
+
+4.Create a test class to act as a message producer:
+
+```
+package com.example.springbootmq;
+
+import com.example.springbootmq.constant.QueueNameConstant;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Date;
+
+/**
+ * @author donagh.wang
+ * @version 1.0.0
+ * @date 2020/11/4 15:53
+ */
+@Slf4j
+public class RabbitMqTest extends SpringbootMqApplicationTests {
+
+    @Autowired
+    private AmqpTemplate amqpTemplate;
+
+    @Test
+    public void testSendMessage() {
+        String msg = "now time:" + new Date();
+        log.info("Send message 【{}】 to {} message queue.", msg, QueueNameConstant.QUEUE_NAME);
+        amqpTemplate.convertAndSend(QueueNameConstant.QUEUE_NAME, "now time:" + new Date());
+    }
+}
+```
+
+5.Start the project (`message consumer`) first, and then execute the test class (`message producer`):
+
+**Message producer output log:**
+
+```
+com.example.springbootmq.RabbitMqTest: Send message 【now time:Wed Nov 04 16:33:46 CST 2020】 to test-mq message queue.
+```
+
+**Message consumer output log:**
+
+```
+c.e.s.message.MessageReceiver: The receiver receives the message: now time:Wed Nov 04 16:33:46 CST 2020
+```
+
+This was a simple tutorial on Spring Boot integrated RabbitMQ. For more information, please check those [RabbitMQ tutorials](https://www.rabbitmq.com/getstarted.html).
+
+_Article Photo by [Burst on Unsplash](https://unsplash.com/photos/kUqqaRjJuw0)_

@@ -1,16 +1,21 @@
-import mdx from '@astrojs/mdx'
+import markdoc from '@astrojs/markdoc'
+import react from '@astrojs/react'
 import sitemap from '@astrojs/sitemap'
 import solidJs from '@astrojs/solid-js'
 import tailwind from '@astrojs/tailwind'
-import { defineConfig, sharpImageService } from 'astro/config'
-import remarkCaptions from 'remark-captions'
+import keystatic from '@keystatic/astro'
+import { defineConfig } from 'astro/config'
 
 // https://astro.build/config
 export default defineConfig({
   site: 'http://localhost:4321/',
-  // trailingSlash: 'always',
   integrations: [
-    solidJs(),
+    react({
+      include: ['keystatic.config.tsx'],
+    }),
+    solidJs({
+      exclude: ['keystatic.config.tsx'],
+    }),
     tailwind({
       applyBaseStyles: false,
     }),
@@ -23,30 +28,21 @@ export default defineConfig({
         },
       },
     }),
-    mdx(),
+    markdoc(),
+    process.env.NODE_ENV === 'production' ? null : keystatic(),
   ],
-  image: {
-    service: sharpImageService({
-      limitInputPixels: false,
-    }),
-  },
-  markdown: {
-    remarkPlugins: [remarkCaptions],
-    extendDefaultPlugins: true,
-  },
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['en', 'ja'],
-    routing: {
-      prefixDefaultLocale: true,
-      redirectToDefaultLocale: false,
+  // i18n: {
+  //   defaultLocale: 'en',
+  //   locales: ['en', 'ja'],
+  //   routing: {
+  //     prefixDefaultLocale: true,
+  //     redirectToDefaultLocale: true,
+  //   },
+  // },
+  output: process.env.NODE_ENV === 'production' ? 'static' : 'hybrid',
+  vite: {
+    ssr: {
+      noExternal: ['react-tweet'],
     },
   },
-  output: 'static',
-  // experimental: {
-  //   contentCollectionCache: true,
-  // },
-  // adapter: node({
-  //   mode: 'standalone',
-  // }),
 })

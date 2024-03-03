@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content'
-import { getRelativeLocaleUrl } from 'astro:i18n'
+// import { getRelativeLocaleUrl } from 'astro:i18n'
 
 interface Props {
   categories: CollectionEntry<'categories'>[]
@@ -8,6 +8,14 @@ interface Props {
   class: string
 }
 const { lang, categories, class: className } = Astro.props
+const getRelativeLocaleUrl = (lang: string, url: string) => {
+  if (!url.startsWith('/')) {
+    throw new Error('URL must start with /')
+  }
+
+  return `/${lang}${url}`
+}
+
 ---
 
 <nav class={className}>
@@ -17,8 +25,8 @@ const { lang, categories, class: className } = Astro.props
         class:list={[
           'block select-none rounded-md border border-accent px-5 py-2.5',
           {
-            'bg-ml-yellow text-black': Astro.url.pathname === getRelativeLocaleUrl(lang, ''),
-            'hover:bg-accent': Astro.url.pathname !== getRelativeLocaleUrl(lang, ''),
+            'bg-ml-yellow text-black': Astro.url.pathname === getRelativeLocaleUrl(lang, '/'),
+            'hover:bg-accent': Astro.url.pathname !== getRelativeLocaleUrl(lang, '/'),
           },
         ]}
         href={getRelativeLocaleUrl(lang, '/')}
@@ -35,11 +43,11 @@ const { lang, categories, class: className } = Astro.props
                 'block select-none rounded-md border border-accent px-5 py-2.5',
                 {
                   'bg-ml-yellow text-black':
-                    Astro.url.pathname === getRelativeLocaleUrl(lang, `categories/${category.slug}`),
-                  'hover:bg-accent': Astro.url.pathname !== getRelativeLocaleUrl(lang, `categories/${category.slug}`),
+                    Astro.url.pathname === getRelativeLocaleUrl(lang, `/categories/${category.id}/`),
+                  'hover:bg-accent': Astro.url.pathname !== getRelativeLocaleUrl(lang, `/categories/${category.id}/`),
                 },
               ]}
-              href={getRelativeLocaleUrl(lang, `/categories/${category.slug}`)}
+              href={getRelativeLocaleUrl(lang, `/categories/${category.id}/`)}
             >
               {category.data.name}
             </a>

@@ -1,0 +1,117 @@
+---
+date: 2019-11-12
+title: Php Conference - Barcelona 2019
+header: src/content/posts/en/php_conference_barcelona/header.webp
+tags: [php, conference, barcelona, backend, security, microservices, architecture]
+authors:
+  - carmen-mihaila
+categories:
+  - afk
+---
+
+On 12t-13th of November 2019, [Barcelona hosted the annual Php Conference](https://php.barcelona/). So many inspiring speakers (Rasmus Lerdorf - the creator of Php Language opened the event) with plenty of interesting topics. There is no justice trying to resume their talks but just some key notes could raise your curiosity and you can go deeper following their attached slides/videos. Enjoy!
+
+## Php - what will bring in the future
+
+by [Rasmus Lerdorf](https://twitter.com/rasmus)
+
+- V.7.4 (null coalescing assignment operator - "??="; typed properties)
+- V.8 (the main feature will be the introduction of JIT - Just in time - compilation)
+- Struggles (strong types can significantly slow down the app if they are abused - still not possible in arrays; Php by itself will probably never not be a proper player in the multithreading world)
+
+## Evolving from Helpers to Middleware
+
+by [Marco Pivetta](https://twitter.com/Ocramius) -
+[video](https://www.youtube.com/watch?v=v1I57-_Rsv0)
+
+- Why/how we evolved from Globals, helpers - global functions - to MVC, proper validations, Testing, Dependency injection, ORMs, DDD, Middlewares
+
+## Microservices
+
+by [Anthony Ferrara](https://twitter.com/ircmaxell) - [video](https://www.softwaretalks.io/v/7268/microservices-gone-wrong-anthony-ferrara-php-uk-conference)
+and
+by [Manel Selles](https://twitter.com/manelselles)
+
+- How they can go really wrong with a poor architecture - for ex. creating unnecessarily small microservices
+- The importance of having an automation team while developing microservices (for deployment, migration, backups, etc)
+- Test failure paths and end to end integration tests
+- Clear definition of business objectives as early as possible
+- Monitoring: telemetry, metrics
+- Importance of Elastic search
+
+## Serverless php app with Bref on top of AWS Lambda
+
+by [Matthieu Napoli](https://twitter.com/matthieunapoli) - [video](https://vimeo.com/345897780)
+
+- Even though AWS Lambda doesn’t support to run php code, Bref developed libraries that can facilitate this.
+- Advantages of having function as a service (Pay only for the code you run - cheap; Don’t have to bother about scalability; Great performance with the right associated memory size option - advisable over 128MB of memory)
+
+## JWT’s
+
+by [Sam Bellen](https://twitter.com/sambego)
+
+- Cookies vs token based authentication
+- Types of tokens in authentication (Access - gives access to different server resources; ID - end user authentication; Refresh - used to generate additional access tokens)
+- JWT structure (Head, Payload, Signature)
+- OAuth protocol
+- Cachable php apps
+
+## Php performance
+
+by [Nikita Popov](https://twitter.com/nikita_ppv) - [slides](https://www.slideshare.net/nikita_ppv/php-performance-trivia)
+
+- Opcache vs ACPU
+- Arrays vs Objects memory usage
+- Garbage Collection
+- Strong types can improve but also slow down - depending on the case and use
+
+## GoLang - an alternative to Php
+
+by [Kat Zień](https://twitter.com/kasiazien) - [slides](https://github.com/katzien/talks/blob/master/get-going-with-a-new-language/phpbarcelona-2019-11-12/slides.pdf)
+
+- Concurrency and parallelism - much stronger and real in Go
+- Differences and similarities between Go and PHP
+- Cool tools that implicitly come along with Go (Formatting, Documenting, Testing, Running)
+
+## Advanced Web application architecture
+
+by [Mathias Noback](https://matthiasnoback.nl/) -
+[slides](https://www.slideshare.net/matthiasnoback/advanced-web-application-architecture-php-barcelona)
+
+- Importance of layers
+- Ports and adaptors, etc
+
+## Webhooks
+
+by [Lorna Mitchell](https://lornajane.net/) - [slides](https://noti.st/lornajane/IxSlX9#sfdxDNC)
+
+- Github webhooks - live example of how great webhooks work
+- API model vs webhooks
+- Ngrok - great tool to test webhooks
+- Webhooks - Queues - Workers
+
+## ReactPhp & Swoole - ways to make performance in an async/event driven world
+
+by [Albert Casademont](https://twitter.com/acasademont)
+and by [Enrico Zimuel](https://www.zimuel.it/) - [video](https://www.youtube.com/watch?v=2AzQ7lDZpyU)
+
+## Zend engine stages
+
+by [Derick Rethans](https://twitter.com/derickr) - [slides](https://derickrethans.nl/talks/jump-bcn19.pdf)
+
+- Parse the scripts
+- Create logical representation
+- Create executable code
+- Convert AST into opcodes (bytecode) - similar to Assembler
+- Execute bytecode
+
+## Mutation testing
+
+by [Théo Fidry](https://twitter.com/tfidry) - [video](https://www.youtube.com/watch?v=dlVASJ-MbUE)
+
+- Infection tool
+- Slow but can be improved
+
+---
+
+There were two packed days, hosted in Gaudi's beautiful Barcelona, with so many passionate people, great vibes and experiences. It's great to stay connected to the last trends and see how quickly this world is spinning!

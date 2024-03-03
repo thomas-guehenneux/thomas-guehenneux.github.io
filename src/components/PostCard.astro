@@ -1,8 +1,8 @@
 ---
-import homeImage from '@/assets/home.webp'
+import homeImage from '@/assets/images/home.webp'
 import { Image, Picture } from 'astro:assets'
 import { getEntries, type CollectionEntry } from 'astro:content'
-import { getRelativeLocaleUrl } from 'astro:i18n'
+// import { getRelativeLocaleUrl } from 'astro:i18n'
 import { convert } from 'html-to-text'
 import { marked } from 'marked'
 
@@ -12,10 +12,18 @@ interface Props {
   lang: 'en' | 'ja'
 }
 
+const getRelativeLocaleUrl = (lang: string, url: string) => {
+  if (!url.startsWith('/')) {
+    throw new Error('URL must start with /')
+  }
+
+  return `/${lang}${url}`
+}
+
 const { post, lang } = Astro.props
 const authors = await getEntries(post.data.authors)
 const categories = post.data.categories ? await getEntries(post.data.categories) : []
-const postUrl = getRelativeLocaleUrl(lang, `posts/${post.slug.split('/')[1]}`)
+const postUrl = getRelativeLocaleUrl(lang, `/posts/${post.slug.split('/')[1]}/`)
 const description = convert((await marked.parseInline(post.body)).replace(/<[^>]+>/g, ''))
   .replace(/#/g, '')
   .replace(/>/g, ' ')
@@ -26,12 +34,13 @@ const description = convert((await marked.parseInline(post.body)).replace(/<[^>]
   <div>
     <a href={postUrl}>
       <Picture
-        src={post.data.image || homeImage}
+        src={post.data.header || homeImage}
         alt={post.data.title}
+        quality="low"
         formats={['avif']}
         fallbackFormat={'webp'}
         class="mb-6 h-[200px] w-full rounded object-cover"
-        widths={[720, 996, (post.data.image || homeImage).width]}
+        widths={[720, 996]}
         sizes={`(max-width: 430px) 332px, 360px`}
       />
     </a>
@@ -66,7 +75,7 @@ const description = convert((await marked.parseInline(post.body)).replace(/<[^>]
           <li>
             <a
               class="block select-none rounded-full border border-accent px-3.5 py-2 text-xs shadow-sm hover:bg-accent"
-              href={getRelativeLocaleUrl(lang, `categories/${category.slug}`)}
+              href={getRelativeLocaleUrl(lang, `/categories/${category.id}/`)}
             >
               {category.data.name}
             </a>

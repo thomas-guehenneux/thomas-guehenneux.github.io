@@ -1,0 +1,161 @@
+---
+date: 2023-01-02
+title: "How to modify your environment using Postman API"
+tags: [qa, testing]  
+header: src/content/posts/en/postman-api-environments/header.webp
+authors:
+  - inna-marchenko
+categories:
+  - qa
+---
+
+Most of the projects we are working on at Monstarlab have frontend and backend parts. Business logic is usually on the backend, and the frontend communicates with the backend using an API.
+
+For some projects we have automated UI tests, but automate API testing is more common:
+- API auto tests are faster than UI auto tests
+- The most part of business logic can be tested on the API level
+- Creating and running API auto tests needs less effort than for the UI ones
+- API auto tests support the frontend team:
+    - the tests give a better understanding on how to use the API
+    - the tests support the frontend development (especially in the beginning of the project when the backend might often be changed)
+
+My favorite tool for API testing is Postman. It’s really flexible and easy to use. In this article I will not focus on the Postman Tool, but on the [Postman API](https://www.postman.com/postman/workspace/postman-public-workspace/documentation/12959542-c8142d51-e97c-46b6-bd77-52bb66712c9a).
+
+It gives us the ability to programmatically manipulate Postman data such as workspaces, collections, environments, mocks and more.
+
+An API key is mandatory for sending requests to the Postman API. The key can be taken from [the integrations dashboard](https://web.postman.co/settings/me/api-keys).
+It should be added into Headers named as: “X-API-Key”.
+
+The value of the “X-API-Key” can be used directly in the header but it is better to save it in the environment variables (with variable type “secret”):
+
+![](src/content/posts/en/postman-api-environments/pic1.webp)
+
+Here is an example of a GET /me request that returns information about the user the X-API-Key belongs to:
+
+![](src/content/posts/en/postman-api-environments/pic2.webp)
+
+I would like to pay your attention to the operations limitation the user has.
+It depends on your current Pricing Plan. For example if you are using a free Postman account you have only 1000 API calls.
+
+Once your “usage” is equal to the “limit” you will receive an error with 429 response code and “Service limit exhausted. Please contact your team admin.” message.
+
+Anyway, let’s take a look at a case when using the Postman API helped me a lot.
+
+It was when I started to work on a project where API tests might have be taken and run by anyone from the team.
+
+We noticed a problem. Each time when a collection was run locally it worked well. Once I exported my collection and environment and shared the json files with my colleagues the run didn’t work on their side.
+
+I did an experiment.
+
+I created the following environment:
+
+| VARIABLE          | INITIAL VALUE | CURRENT VALUE |
+|-------------------|---------------|---------------|
+| onlyInitialValues | one           |               |
+| onlyCurrentValue  |               | two           |
+| noAnyValues       |               |               |
+| bothValues        | three         | four          |
+
+<br>
+
+After that I copied the environment. It looked in the following way:
+
+| VARIABLE          | INITIAL VALUE | CURRENT VALUE |
+|-------------------|---------------|---------------|
+| onlyInitialValues | one           | one           |
+| onlyCurrentValue  |               |               |
+| noAnyValues       |               |               |
+| bothValues        | three         | three         |
+
+<br>
+
+As you can see, initial values are copied to the current ones.
+
+The same was when the environment was exported to json and imported again.
+
+But I counted to see fresh values there (that are taken from the Current Value column).
+
+That is what I read in the [Postman documentation](https://learning.postman.com/docs/sending-requests/managing-environments/):
+
+> Enter a name for your variable, and specify its **Initial** and **Current** values. By default the current value will copy the initial value.
+>
+> - The **Initial Value** is synced to your account using the Postman servers. It’s shared with any collaborators who have access to the environment.
+> - The **Current Value** is used in your local instance of Postman, and is never synced to your account or shared with your team unless you choose to persist it.
+>
+> To update the synced variable with your local value, set the initial value to the current value by selecting the more actions icon and choosing **Persist**. To reset your local (current) value with the synced value shared with your workspace / collaborators, select **Reset**. You can persist or reset all values in the environment using **Persist All** and **Reset All**.
+
+<br>
+
+So, when you copy or export/ import an environment it is like the “Reset All” action is performed.
+
+The “Persist All” would fit better for my needs. But it is still manual work: each time when the environment is changed the “Persist All” command should be called.
+
+I did some research and found that it is possible to do programmatically. The information can be found under the link to the [Postman Support](https://support.postman.com/hc/en-us/articles/4409005403031-How-to-persist-variable-values-).
+
+The script they provided worked well but I created an improved that version to fit my purposes better:
+
+```javascript
+let currentEnvId = pm.environment.id.replace("environment/", "");
+let index = currentEnvId.indexOf("/");
+currentEnvId = currentEnvId.substring(0, index);
+
+const getRequestOptions = {
+    url: 'https://api.getpostman.com/environments/' + currentEnvId,
+    method: 'GET',
+    header: {
+        'X-API-Key': pm.environment.get("postmanApiKey")
+    }
+}
+
+pm.sendRequest(getRequestOptions, (error, response) => {
+    if (error)
+    {
+        console.log(error);
+    }
+    else
+    {
+        let body = response.json()
+        const envVariablestoUpdate = ['variable2', 'variable3'];
+
+        for (let i = 0; i < body.environment.values.length; i++)
+        {
+            for (let j = 0; j < envVariablestoUpdate.length; j++)
+            {
+                if (envVariablestoUpdate[j] == body.environment.values[i].key)
+                {
+                    body.environment.values[i].value = pm.environment.get(envVariablestoUpdate[j]).toString();
+                }                   
+            }
+        }
+
+        const putRequestOptions = {
+            url: 'https://api.getpostman.com/environments/' + currentEnvId,
+            method: 'PUT',
+            header: {
+                'X-API-Key': pm.environment.get("postmanApiKey")
+            },
+            body: {
+                mode: 'raw',
+                raw: body
+            }
+        }
+
+        pm.sendRequest(putRequestOptions, (error, response) => {
+            if (error)
+            {
+                console.log(error);
+            }
+        })
+    }
+})
+```
+
+<ins>const envVariablestoUpdate = [‘variable1’, ‘variable3’]</ins> should be populated with names of the environment variables which values should be copied from the current to the initial ones.
+
+The script should be used in the Tests section of the requests in which the needed environment variables are changed.
+
+Now the tests can be run after each successful deployment of the remote service we are developing or locally and it doesn't break anything. A GitHub workflow is created to run the tests remotely. And the [Newman Action (via Postman API)](http://matt-ball/newman-action@master) is used there.
+
+Every time I learn something new about Postman, it never ceases to amaze me. Well, is there something impossible for it?
+
+_Article Photo by [Rubaitul Azad](https://unsplash.com/photos/FPK6K5OUFVA)_

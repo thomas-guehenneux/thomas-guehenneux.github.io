@@ -1,14 +1,14 @@
 ---
-import homeImage from '@/assets/home.webp'
+import homeImage from '@/assets/images/home.webp'
 import CategoryNav from '@/components/CategoryNav.astro'
+import Hero from '@/components/Hero.astro'
+import PostCard from '@/components/PostCard.astro'
 import ThePagination from '@/components/ThePagination.astro'
 import { langs } from '@/constants'
 import Layout from '@/layouts/Layout.astro'
+import type { Locales } from '@/types/i18n'
 import type { GetStaticPathsOptions } from 'astro'
 import { getCollection } from 'astro:content'
-import Hero from '~/components/Hero.astro'
-import PostCard from '~/components/PostCard.astro'
-import type { Locales } from '~/types/i18n'
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
   const allPosts = (await getCollection('posts')).sort((a, b) => {
@@ -32,11 +32,11 @@ const categories = await getCollection('posts', ({ slug }) => {
   return slug.startsWith(lang)
 }).then(async (posts) => {
   const categorySlugs = posts
-    .map((post) => post.data.categories?.map((category) => category.slug))
+    .map((post) => post.data.categories?.map((category) => category.id))
     .filter(Boolean)
     .flat()
-  return await getCollection('categories', ({ slug }) => {
-    return categorySlugs.includes(slug)
+  return await getCollection('categories', ({ id }) => {
+    return categorySlugs.includes(id)
   })
 })
 

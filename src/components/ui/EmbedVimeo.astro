@@ -1,0 +1,25 @@
+---
+import { Vimeo } from 'astro-embed'
+
+export interface Props {
+  videoId: string
+}
+
+const { videoId } = Astro.props
+
+const caption = await Astro.slots.render('default')
+const isCaptionPresent = caption !== ''
+---
+
+{
+  isCaptionPresent ? (
+    <figure>
+      <Vimeo id={videoId} />
+      <figcaption>
+        <Fragment set:html={caption} />
+      </figcaption>
+    </figure>
+  ) : (
+    <Vimeo id={videoId} />
+  )
+}

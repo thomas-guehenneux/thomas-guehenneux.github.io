@@ -1,0 +1,187 @@
+---
+date: 2020-08-12
+title: Let it flow
+tags: [android, coroutines, kotlin, flow, engineering]
+header: src/content/posts/en/let-it-flow/header.webp
+authors:
+  - lucas-sales
+categories:
+  - android
+---
+
+I've been working with [Flow](https://kotlinlang.org/docs/reference/coroutines/flow.html) on production for almost a year now. The light weight kotlin coroutines stream library has completely replaced RxJava for our new projects. RxJava is still a trend for Android Development even in 2020. But this article is not another RxJava x Coroutines. It is here to show that you can use Flow with almost anything in the Android framework.
+
+Similar to when RxJava started to become a trend in Android development, there were also tons of libraries that would make anything on Android into an RxJava observer. RxBindings, RxActivityResult, RxPermissions, RxSharedPreferences, you name it. Can the same be done using Flow? Yes of course. And with the power of Kotlin, easier, more comprehensible and lighter.
+
+Before we begin I would like to make a small disclaimer. Using flow for these scenarios can be an overkill and we don't actually need any threading for the below examples. If the scope is not handled properly it can cause memory leaks.
+
+Gradle setup:
+
+```groovy
+    dependencies {
+        ...
+        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}"
+        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${coroutinesVersion}"
+        // Not required, used in this example to use `lifecycleScope` available from version 2.2.0 and onwards
+        implementation "androidx.lifecycle:lifecycle-runtime-ktx:${lifecycleVersion}"
+    }
+```
+
+Let's think of a simple example first: `Click listener`.
+
+```kotlin
+    fun View.onClickFlow(): Flow<View> {
+        return callbackFlow {
+            setOnClickListener {
+                offer(it)
+            }
+            awaitClose { setOnClickListener(null) }
+        }
+    }
+```
+
+```kotlin
+    lifecycleScope.launch {
+        btn.onClickFlow()
+            .collect { view ->
+                Toast.makeText(view.context, "Clicked", Toast.LENGTH_SHORT).show()
+            }
+    }
+```
+
+<video autoplay loop muted playsinline>
+  <source src={clickflowWebm} type="video/webm" />
+  <source src={clickflowMp4} type="video/mp4" />
+</video>
+
+Now we can use all Flow operators on a view click listener.
+Let's try with a `TextWatcher`:
+
+```kotlin
+    fun EditText.afterTextChangedFlow(): Flow<Editable?> {
+        return callbackFlow {
+            val watcher = object : TextWatcher {
+                override fun afterTextChanged(s: Editable?) {
+                    offer(s)
+                }
+
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            }
+
+            addTextChangedListener(watcher)
+            awaitClose { removeTextChangedListener(watcher) }
+        }
+    }
+```
+
+```kotlin
+    lifecycleScope.launch {
+        editText.afterTextChangedFlow()
+            .collect {
+                textView.text = it
+            }
+    }
+```
+
+{% AnimatedImage
+   mp4Src="src/content/posts/en/let-it-flow/textwatcherflow.mp4"
+   webmSrc="src/content/posts/en/let-it-flow/textwatcherflow.webm" /%}
+
+Now we can add [debounce](https://rxmarbles.com/#debounce), filter, map, whatever we want, let's try it.
+
+```kotlin
+    lifecycleScope.launch {
+        editText.afterTextChangeFlow()
+            .debounce(1000)
+            .collect {
+                textView.text = it
+            }
+    }
+```
+
+{% AnimatedImage
+   mp4Src="src/content/posts/en/let-it-flow/textwatcherdebounce.mp4"
+   webmSrc="src/content/posts/en/let-it-flow/textwatcherdebounce.webm" /%}
+
+Adding `debounce` makes the flow wait an amount of time before emitting values. This is a very common use case for search operations that require network requests as an example.
+
+Enough with `View` flows, let's try applying the same concept on `SharedPreferences`:
+
+```kotlin
+    fun <T> SharedPreferences.observeKey(
+        key: String,
+        default: T
+    ): Flow<T> {
+        return callbackFlow {
+            send(getItem(key, default))
+
+            val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, k ->
+                if (key == k) {
+                    offer(getItem(key, default))
+                }
+            }
+
+            registerOnSharedPreferenceChangeListener(listener)
+            awaitClose {
+                unregisterOnSharedPreferenceChangeListener(listener)
+            }
+        }
+    }
+
+    fun <T> SharedPreferences.getItem(key: String, default: T): T {
+        @Suppress("UNCHECKED_CAST")
+        return when (default) {
+            is String -> getString(key, default) as T
+            is Int -> getInt(key, default) as T
+            is Long -> getLong(key, default) as T
+            is Boolean -> getBoolean(key, default) as T
+            is Float -> getFloat(key, default) as T
+            is Set<*> -> getStringSet(key, default as Set<String>) as T
+            is MutableSet<*> -> getStringSet(key, default as MutableSet<String>) as T
+            else -> throw IllegalArgumentException("generic type not handled")
+        }
+    }
+```
+
+```kotlin
+    lifecycleScope.launch {
+        launch {
+            repeat(10) {
+                delay(300)
+                sharedPreferences.edit { putString("key", "Counting $it") }
+            }
+        }
+        sharedPreferences.observeKey("key", "")
+            .collect { string ->
+                textView.text = string
+            }
+    }
+```
+
+{% AnimatedImage
+   mp4Src="src/content/posts/en/let-it-flow/sharedpreferenceflow.mp4"
+   webmSrc="src/content/posts/en/let-it-flow/sharedpreferenceflow.webm" /%}
+
+Super easy right? How about `BroadcastReceiver`? Why not.
+
+```kotlin
+    fun broadcastReceiverFlow(c: Context, intentFilter: IntentFilter): Flow<Intent> {
+        return callbackFlow {
+            val broadcastReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    offer(intent)
+                }
+            }
+            c.registerReceiver(broadcastReceiver, intentFilter)
+            awaitClose {
+                c.unregisterReceiver(broadcastReceiver)
+            }
+        }
+    }
+```
+
+That's all for today's blog post, see you soon!
+
+Article photo by [SpaceCitySpin](https://www.teepublic.com/user/spacecityspin)

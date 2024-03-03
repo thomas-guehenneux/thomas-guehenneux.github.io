@@ -1,0 +1,280 @@
+---
+date: 2023-01-06
+title: Introduction to Kotlin Coroutines for Android
+tags: [android, kotlin]
+header: src/content/posts/en/introduction-to-kotlin-coroutines-for-android/header.webp
+authors:
+  - khairullo-abdulaev
+categories:
+  - android
+---
+
+Asynchronous programming is a technique used to perform long-running tasks without blocking the main thread of an application. This is important in Android, where the main thread is responsible for rendering the user interface and handling user input. Traditionally, asynchronous tasks have been implemented using callbacks, which can make the code complex and hard to understand.
+
+Coroutines offer a simpler and more readable alternative to callbacks for asynchronous programming in Android Kotlin. By using coroutines, you can write asynchronous code that looks and behaves like synchronous code, giving you more control over the flow of your program.
+
+In this article, we'll explore what coroutines are and how they work in Android Kotlin. We'll also look at some of the benefits of using coroutines and some best practices for implementing them in your projects. By the end of this article, you'll have a solid understanding of how to use coroutines to write clean and efficient asynchronous code in Android Kotlin.
+
+Let's look at an example of implementing a small asynchronous task in an Android application using coroutines. This will help us understand how to use coroutines to write clean and efficient code for asynchronous tasks in Android.
+
+## Quick start
+
+To use coroutines in your Android project, you will need to add the following dependency to your build.gradle file:
+
+```kotlin
+implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4"
+```
+
+Once you have added the dependency, you can start using coroutines in your project by adding the suspend keyword to the function you want to make asynchronous.
+For example, let's say you want to make a network call to fetch some data from a server.
+With coroutines, you can do this as follows:
+
+```kotlin
+suspend fun fetchData(): Data {
+    return withContext(Dispatchers.IO) {
+        // Make network call here
+        val response = api.fetchData()
+        // Return the result
+        response.data
+    }
+}
+```
+
+As you can see, the "fetchData" function is marked with the "suspend" keyword, which tells the compiler that this function can be suspended and resumed at certain
+points. The "withContext" function is used to specify the context in which the code should be executed, in this case, the IO dispatcher, which is a thread pool
+designed for blocking IO operations.
+
+
+To use the fetchData function, you will need to call it from another suspend function or from a coroutine.
+You can do this using the launch function from the CoroutineScope class:
+
+```kotlin
+fun loadData() {
+    CoroutineScope(Dispatchers.Main).launch {
+        val data = fetchData()
+        // Use the data
+    }
+}
+```
+
+The launch function creates a new coroutine and starts it immediately.
+The Dispatchers.Main parameter specifies that the code inside the coroutine should be executed on the main thread, which is necessary because you can't update the
+UI from a background thread.
+
+With these few lines of code, you can easily make asynchronous network calls and update your UI with the results, all without using any callbacks.
+Coroutines make it much easier to write clean and readable code, and are a great tool to have in your Android development toolkit.
+
+Now is the time to go beyond the surface level and really get to know Kotlin coroutines by examining them more closely.
+
+## What do we need in order to use coroutines?
+
+![](src/content/posts/en/introduction-to-kotlin-coroutines-for-android/image01.webp)
+
+1. A **dependency** on the kotlinx.coroutines library. You need to add the following dependency to your build.gradle file to use coroutines in your Android project: *"implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9'"*
+2. A **scope** where the coroutine is going to live. Scopes define the boundaries for the execution of a coroutine. When the object (e.g. an Activity) is destroyed, the coroutines tied to that object will be automatically cancelled.
+3. A **dispatcher** (also known as a context) that decides on which thread the coroutine will execute. Dispatchers can be passed as a parameter to coroutine builders.
+4. **Coroutine builders** that are responsible for building and, in some cases, launching the coroutine.
+5. A **job** that represents asynchronous work, such as fetching data.
+6. Optionally, a **structured concurrency** design pattern, such as a supervisor job, to manage the lifetime of your coroutines.
+
+Let's start from scopes.
+
+## Coroutine scopes
+
+There are several built-in scopes that you can use in Kotlin, such as:
+
+* **Global scope** is a scope that is not tied to the lifetime of any particular object. It is the default scope used when you launch a coroutine using the launch function from the kotlinx.coroutines package. But coroutines launched in the GlobalScope continue to run even after the completion of the coroutine builder's block, and they are not cancelled by the system unless you explicitly cancel them or terminate the entire coroutine context in which they are running. Here is an example of how you can launch a coroutine in the GlobalScope:
+
+```kotlin
+fun main() {
+    GlobalScope.launch {
+        // launch a new coroutine in background and continue
+        delay(1000L) // non-blocking delay for 1 second
+        println("World!") // print after delay
+    }
+    println("Hello,") // main thread continues while coroutine is delayed
+    Thread.sleep(2000L) // block main thread for 2 seconds to keep JVM alive
+}
+```
+You could try it here: https://pl.kotl.in/Bbe35HhM8
+
+* **LifecycleScope** is a scope that is tied to the lifecycle of any Lifecycle object, such as an Activity or a Fragment. Coroutines launched in this scope are automatically cancelled when the associated Lifecycle object is destroyed. This is useful for cancelling ongoing background tasks when the user navigates away from the associated UI. Here is example:
+
+```kotlin
+class MyFragment : Fragment() {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        lifecycleScope.launch {
+            // launch a new coroutine in the scope of this fragment's view lifecycle
+            delay(1000L) // non-blocking delay for 1 second (default time unit is ms)
+            println("Data loaded") // print after delay
+        }
+    }
+}
+```
+
+* **ViewModelScope** is a scope that is tied to the lifecycle of a ViewModel. Coroutines launched in this scope are automatically cancelled when the ViewModel is destroyed, which typically happens when the associated UI is no longer visible to the user. This is useful for cancelling ongoing background tasks when the user navigates away from the UI. For example:
+
+```kotlin
+class MyViewModel : ViewModel() {
+    init {
+        viewModelScope.launch {
+            // launch a new coroutine in the scope of this viewModel
+            delay(1000L) // non-blocking delay for 1 second
+            println("Data loaded") // print after delay
+        }
+    }
+}
+```
+Once you have decided on the scope in which you want to launch your coroutine, the next step is to choose the context or dispatcher that will determine on which thread the coroutine will execute.
+
+## Dispatchers
+
+In Kotlin, dispatchers are represented by the CoroutineDispatcher interface, which defines a single dispatch function that is responsible for executing a given piece of code on a specific thread. There are several built-in dispatchers that you can use, such as:
+
+* **Dispatchers.Main:** This dispatcher is used to execute coroutines on the main thread of the app. It is typically used to update the UI or perform other tasks that need to run on the main thread.
+
+* **Dispatchers.Default:** This dispatcher is used to execute coroutines on a shared background thread. It is suitable for tasks that perform blocking operations or computationally intensive work.
+
+* **Dispatchers.IO:** This dispatcher is used to execute coroutines that perform blocking IO operations, such as reading from or writing to a file or network socket.
+
+* **Dispatchers.Unconfined:** This dispatcher is used to execute a coroutine in the current thread, but only until the first suspension point. After the first suspension, the coroutine will resume in the thread that is used by the corresponding continuation.
+
+You can also create your own custom dispatchers by using the **Dispatchers.newSingleThreadContext** or **Dispatchers.newFixedThreadPoolContext** functions.
+
+Which dispatcher you should use will depend on the specific needs of your app. In general, it is a good idea to use the most appropriate dispatcher for the type of work that you are doing, to ensure that your coroutines run efficiently and do not block the main thread.
+
+After determining the scope and the dispatcher, you can proceed to creating and starting the coroutine.
+
+## Coroutine builders
+
+In Kotlin coroutines, a **"coroutine builder"** is a function that creates and starts a new coroutine.
+There are several coroutine builders provided by the Kotlin coroutines library, including:
+
+* **launch:** This function creates and starts a new coroutine. It returns a Job object that can be used to manage the lifecycle of the coroutine.
+
+```kotlin
+fun main() = runBlocking {
+    val job = launch {
+        // launch a new coroutine and keep a reference to its Job
+        delay(1000L)
+        println("World!")
+    }
+    println("Hello,")
+    job.join() // wait until the coroutine completes
+}
+```
+
+* **async:** This function creates and starts a new coroutine that runs asynchronously. It returns a Deferred object that can be used to retrieve the result of the coroutine when it completes.
+
+```kotlin
+fun main() = runBlocking {
+    val result = async {
+        // create and start a new coroutine
+        delay(1000L)
+        "Hello, World!"
+    }
+    println(result.await()) // retrieve the result of the coroutine
+}
+```
+
+* **runBlocking:** This function blocks the current thread and runs a new coroutine until it completes. It is typically used to test coroutines or to run a small amount of code synchronously.
+
+```kotlin
+fun main() = runBlocking {
+    val result = withContext(Dispatchers.IO) {
+        // run this block in the IO context
+        delay(1000L)
+        "Hello, World!"
+    }
+    println(result)
+}
+```
+
+* **produce:** This function creates and starts a new coroutine that produces a stream of values. It returns a ReceiveChannel object that can be used to receive the values produced by the coroutine.
+
+Each of these coroutine builders has its own specific use cases and can be useful in different situations. For example, you might use **launch** to perform a long-running task in the background, **async** to perform a computation and retrieve the result asynchronously, or **produce** to create a stream of data that can be consumed by other parts of your code. For example:
+
+## Suspending functions
+
+In Kotlin coroutines, a **"suspending function"** is a function that can be paused and resumed at a later time.
+Suspending functions are used to perform long-running tasks, such as network requests or database access, in a non-blocking way.
+
+Here is a list of some of the most common suspending functions provided by the Kotlin coroutines library:
+
+* **delay:** This function suspends the current coroutine for a specified period of time. It can be used to pause the execution of a coroutine for a fixed amount of time, or to implement a timeout. This function will be demonstrated in the following examples.
+
+* **yield:** This function yields control to other coroutines that are waiting to be executed. It can be used to improve the performance of a coroutine by allowing other coroutines to run in its place when it is idle.
+
+```kotlin
+fun main() = runBlocking {
+    launch {
+        var nextPrintTime = System.currentTimeMillis()
+        var i = 0
+        while (i<10) {
+            // print a message every second
+            if (System.currentTimeMillis() >= nextPrintTime) {
+                println("X: I'm deciding whom to give the control ${i++} ...")
+                nextPrintTime += 1000L
+            }
+            yield() // yield control to other coroutines
+        }
+    }
+    delay(1000L) // delay a bit
+    println("A: I took the control first")
+
+    delay(1000L) // delay a bit
+    println("B: I took the control second")
+}
+```
+In this example, we start a new coroutine called "X" and begin printing a message with an incrementing value. Then, we yield control to other coroutines using the yield function.
+
+The coroutine "A" takes control and prints the message: "A: I took the control first". After that, the control is returned to "X", and it continues printing incrementing values.
+
+Then, we yield control to the coroutine "B" and it prints the message: "B: I took the control second". After that, the control is returned to "X", and it continues printing incrementing values until the end. **"yield"** functions is still there, but there are no more coroutines left to yield control to. As a result, the control remains with the current coroutine and the loop continues to execute.
+
+
+* **withContext:** This function allows you to specify the context in which a block of code should run. It is often used to specify the dispatcher on which a coroutine should run, such as the main thread or a background thread. It suspends the current coroutine and resumes it with a new context when the block completes. Here is an example of how you can use **withContext** to run a block of code in a specific thread:
+
+```kotlin
+fun main() = runBlocking {
+    val result = withContext(Dispatchers.IO) {
+        // run this block in the IO context
+        delay(1000L)
+        "Hello, World!"
+    }
+    println(result)
+}
+```
+In this example, the withContext function suspends the current coroutine and runs the block of code in the IO context. The coroutine is resumed with the result of the block (i.e. the string "Hello, World!") once the block completes.
+
+You can use **withContext** to perform blocking or I/O-bound operations in a specific thread, or to switch between threads to take advantage of the different characteristics of each thread. For example, you might use **Dispatchers.Main** to update the UI from a background thread.
+
+
+* **await:** This function is used to suspend the current coroutine and wait for the completion of a Deferred object. It can be used to retrieve the result of an asynchronous computation. For example:
+
+```kotlin
+fun main() = runBlocking {
+    val deferred = async {
+        // start a new coroutine and return a Deferred object
+        delay(1000L)
+        "Hello, World!"
+    }
+    val result = deferred.await() // wait for the result of the coroutine
+    println(result)
+}
+```
+
+There are many other suspending functions available in the Kotlin coroutines library, depending on the specific needs of your app.
+For example, the **kotlinx.coroutines.flow** package provides functions for creating and manipulating streams of data (you can get to know them better here: [Introduction to Kotlin Flows](https://engineering.monstar-lab.com/en/post/2022/09/30/Introduction-to-Kotlin-flows), and the **kotlinx.coroutines.channels** package provides functions for creating and manipulating channels for message passing.
+
+## Conclusion
+Kotlin coroutines are a useful tool for Android developers to write asynchronous, non-blocking code in a more readable and straightforward manner. They enable the suspension and resumption of code execution and provide various coroutine builders, such as "launch," "async," "runBlocking," and "produce," to create and manage coroutines. Suspending functions allow you to perform long-running tasks, such as network requests and database access, asynchronously. Kotlin coroutines also provide ways to handle errors, including try-catch blocks, the "throw" keyword, and the "supervisorScope" function. In summary, Kotlin coroutines are a valuable addition to any developer's toolkit for writing efficient asynchronous code in Android projects.
+
+## Resources
+- [Kotlin coroutines on Android](https://developer.android.com/kotlin/coroutines)
+- [Coroutines﻿](https://kotlinlang.org/docs/coroutines-overview.html)
+- [Coroutines guide﻿](https://kotlinlang.org/docs/coroutines-guide.html)
+- [Additional resources for Kotlin coroutines and flow](https://developer.android.com/kotlin/coroutines/additional-resources)
+
+_Article Photo created by Midjourney AI [Midjourney](https://www.midjourney.com)_

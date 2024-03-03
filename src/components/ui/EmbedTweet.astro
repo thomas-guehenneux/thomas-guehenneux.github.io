@@ -1,0 +1,11 @@
+---
+import Tweet from 'astro-tweet'
+
+export interface Props {
+  tweetId: string
+}
+
+const { tweetId } = Astro.props
+---
+
+<Tweet id={tweetId} />

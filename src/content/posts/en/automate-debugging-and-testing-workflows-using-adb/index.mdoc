@@ -1,0 +1,270 @@
+---
+date: 2019-04-29
+title: Automate Debugging and Testing Workflows using ADB
+tags: [android, adb, automation, testing, debugging]
+header: src/content/posts/en/automate-debugging-and-testing-workflows-using-adb/header.webp
+authors:
+  - markus-rubey
+categories:
+  - android
+---
+
+While developing and testing we usually come across repetitive tasks involving manual efforts.
+Navigating to a certain part of the app, filling out sign up forms or simply taking screenshots are all time-consuming tasks.
+In this blog post we look at how we can utilize [ADB](https://developer.android.com/studio/command-line/adb) (Android Debug Bridge) to automate and speed up mundane workflows.
+
+## Basics
+
+To get an overview of all your connected devices run following command:
+
+```shellscript
+#!/bin/bash
+
+# List all connected devices
+adb devices
+```
+
+You can wake up a device by simulating a power-button press like:
+
+```shellscript
+#!/bin/bash
+
+# Wake up device
+adb shell input keyevent 26
+```
+
+If you have more then one connected device you need to specify which device you want to target:
+
+```shellscript
+#!/bin/bash
+
+# Wake up a specific device
+adb -s emulator-5554 shell input keyevent 26
+```
+
+At Nodes all our test devices come locked with a pin code. So why not have a script for waking up and unlocking a device so we don't have to manually enter a pin every time we want to interact with it:
+
+```shellscript
+#!/bin/bash
+
+# Unlocks a pin (1234) locked device
+
+# Wake up
+adb shell input keyevent 26
+
+# Unlock screen
+adb shell input keyevent 82
+
+# Enter and confirm pin
+adb shell input text 1234
+adb shell input keyevent 66
+```
+
+Let's open our app. We simply provide our package name and have [Monkey](https://developer.android.com/studio/test/monkey) trigger a LAUNCHER intent for us:
+
+```shellscript
+#!/bin/bash
+
+# Open application
+adb shell monkey -p com.package.name -c android.intent.category.LAUNCHER 1
+```
+
+If you need to install your app first, generate your APK and install it with:
+
+```shellscript
+#!/bin/bash
+
+# Install an APK
+adb install -r name.apk
+```
+
+To uninstall an app use:
+
+```shellscript
+#!/bin/bash
+
+# Uninstall an app
+adb uninstall com.package.name
+```
+
+Sometimes you might want to clear your app's data:
+
+```shellscript
+#!/bin/bash
+
+# Clear app data
+adb shell pm clear com.package.name
+```
+
+Or navigate to app settings on an older Samsung phone:
+
+```shellscript
+#!/bin/bash
+
+# Open app settings
+adb shell am start -a android.settings.APPLICATION_DETAILS_SETTINGS package:com.package.name
+```
+
+## Permissions
+
+You can revoke all permissions running:
+
+```shellscript
+#!/bin/bash
+
+# Reset all permissions
+adb shell pm reset-permissions
+```
+
+Or just a single one using:
+
+```shellscript
+#!/bin/bash
+
+# Revoke WRITE_EXTERNAL_STORAGEl permission
+adb shell pm revoke com.package.name android.permission.WRITE_EXTERNAL_STORAGE
+```
+
+To grant a permission run:
+
+```shellscript
+#!/bin/bash
+
+# Grant WRITE_EXTERNAL_STORAGE permission
+adb shell pm grant com.package.name android.permission.WRITE_EXTERNAL_STORAGE
+```
+
+## Screenshots
+
+If we want to take a nice screenshot from our app without clutter in the status bar we can combine following commands:
+
+```shellscript
+#!/bin/bash
+
+# Cleans up the status bar and takes a screenshot
+
+# Start demo mode
+adb shell settings put global sysui_demo_allowed 1
+
+# Display time 10:10
+adb shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm 1010
+
+# Display mobile data level 4 without type
+adb shell am broadcast -a com.android.systemui.demo -e command network -e mobile show -e level 4 -e datatype false
+
+# Display wifi level 4
+adb shell am broadcast -a com.android.systemui.demo -e command network -e mobile show -e level 4
+
+# Show battery level 100 not charging
+adb shell am broadcast -a com.android.systemui.demo -e command battery -e plugged false -e level 100
+
+# Take screenshot
+adb shell screencap /sdcard/screenshot_file_name.png
+
+# Exit demo mode
+adb shell am broadcast -a com.android.systemui.demo -e command exit
+```
+
+You can find all possible demo mode commands in a link at the end of this article.
+
+If you want to record the screen instead replace the screencap command with:
+
+```shellscript
+#!/bin/bash
+
+# Records a device's screen
+adb shell screenrecord /sdcard/video_file_name.mp4
+```
+
+To get a hold of the screenshot or video you took run:
+
+```shellscript
+#!/bin/bash
+
+# Downloads screenshot to computer
+adb pull /sdcard/screenshot_file_name.png
+```
+
+## Deep-Links
+
+Let's say we have a deep-link for verifying a user's email address. Instead of setting up our email account to access the mail on a test device we can simply run this script:
+
+```shellscript
+#!/bin/bash
+
+# Opens a deep-link for verifying a user's email address
+
+echo Enter your email verification code:
+read code
+
+adb shell am start -W -a android.intent.action.VIEW -d "appname://user/activate?verificationcode=$code"
+```
+
+The script above prompts you to enter the verification code, builds the deeplink and launches the application.
+
+## Autofill Input Forms
+
+Most apps offer some sort of sign-up/sign-in flow. For sign-in we usually have to fill out our email and password. Sign-up screens on the other hand can require much more details like confirming a password or accepting a privacy policy. Wouldn't it be nice to have a script filling out all these forms for us?
+
+```shellscript
+#!/bin/bash
+
+# Autofill script for user sign-in form. Navigate to UserSignInFragment before executing.
+
+echo Enter your nodes user name:
+read username
+
+# Enter email
+adb shell input keyevent 61
+adb shell input text "$username+appname@nodesagency.com"
+
+# Enter password
+adb shell input keyevent 61
+adb shell input text "SuperSecret123\!"
+```
+
+Having Gmail as our default email service comes in handy here since one account can offer multiple test accounts. Simply extend your email with `+` and you have a new address for testing that points to your inbox. To avoid the need of adjusting the email in the script we simply prompt for a user name. This way every developer at Nodes can run the script right away.
+
+Keep in mind that relying on key events for navigating our app requires a proper setup of focusable views. You can learn more about that under developer.android.com/training/keyboard-input/navigation. It's always good practice to support keyboard navigation, Chromebook users will appreciate it as well!
+
+You can find all key constants in a link at the end of this article. For most cases the Tab key (61) will be sufficient.
+
+## SharedPreferences
+
+I already showed how to clear all local data of an app, though what we really want most of the time is to change a specific key. [PreferencesEditor](https://github.com/jfsso/PreferencesEditor) allows you to easily add, edit and remove keys from your shared preferences files.
+
+After adding PreferencesEditor as a dependency to our debug builds we can change a value simply by:
+
+```shellscript
+#!/bin/bash
+
+# Sets a value in default shared preferences
+adb shell 'am broadcast -a com.package.name.sp.PUT --es key key_name --es value "Hello world!"'
+```
+
+Or remove a value by running:
+
+```shellscript
+#!/bin/bash
+
+# Removes a value in default shared preferences
+adb shell 'am broadcast -a com.package.name.sp.REMOVE --es key key_name'
+```
+
+## Conclusion
+
+I hope this blog post gave you some ideas on how to save time during debugging and testing. If you find yourself doing something over and over again try to automate it!
+
+All the links to get going:
+
+Android Debug Bridge: https://developer.android.com/studio/command-line/adb
+
+Android Key Constants: https://developer.android.com/reference/android/view/KeyEvent.html
+
+Android Keyboard Navigation: https://developer.android.com/training/keyboard-input/navigation
+
+Android Demo Mode: https://android.googlesource.com/platform/frameworks/base/+/android-6.0.0_r1/packages/SystemUI/docs/demo_mode.md
+
+PreferencesEditor: https://github.com/jfsso/PreferencesEditor
+
+_Article Photo by [Franck V.](https://unsplash.com/photos/U3sOwViXhkY)_

@@ -42,14 +42,14 @@ const { title, description, image, availableLocales, lang } = Astro.props
   })
 </script>
 
-<html lang={lang}>
+<html {lang}>
   <head>
     <ViewTransitions />
-    <BaseHead title={title} description={description} image={image} availableLocales={availableLocales} />
+    <BaseHead {title} {description} {image} {availableLocales} />
   </head>
   <body>
-    <Header availableLocales={availableLocales} lang={lang} />
+    <Header {availableLocales} {lang} />
     <slot />
-    <Footer lang={lang} />
+    <Footer {lang} />
   </body>
 </html>

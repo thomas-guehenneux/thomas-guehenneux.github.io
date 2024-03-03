@@ -1,0 +1,97 @@
+---
+date: 2019-08-22
+title: Sharing code between iOS and Vapor
+tags: [swift, vapor, ios, development]
+header: src/content/posts/en/sharing-code-between-ios-and-vapor/header.webp
+authors:
+  - monstarlab
+categories:
+  - vapor
+  - ios
+---
+
+Code reusability has always been one of the ultimate goals for us developers. Building your backend with Vapor not only gives you highly scalable apps with shallow memory footprint, but also the potential to share some of your backend code with your iOS app without paying the extra cost. The downside comes when you try to share networking code between iOS and Vapor. This is due to the fact that Vapor is built on the top of [SwiftNIO](https://github.com/apple/swift-nio), which means you can not share your URLSession based code. SwiftNIO is Event-driven (based on Futures and promises) which is not compatible with URLSession's callback approach. However, the good news is that Apple released [NIO Transport Services](https://github.com/apple/swift-nio-transport-services) - "Extensions for SwiftNIO to support Apple platforms as first-class citizens." In this post, I will outline some basic concepts about sharing entity objects between iOS and Vapor.
+
+## Create entity objects 
+
+In the main repository, we will store the Swift package which holds the framework target with our codable entity objects:
+
+```shellscript 
+swift package init
+```
+
+Add your entity objects under the `Sources/MyFramework/` directory. They have to be `public` and conform to the `Codable` protocol, e.g.:
+
+```swift 
+public struct SomeResponse: Codable {
+  public let id: Int
+  public let name: String
+  public let isDefault: Bool
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case name
+    case isDefault = "is_default"
+  }
+}
+```
+
+## Create shim repository 
+
+We need to create a Carthage shim repository (e.g. `https://github.com/MyOrganization/MyFramework-shim`), the idea is to have some "glue" between the main repository which is Swift Package Manager based and the iOS project. Of course, if your iOS project supports Swift Package Manager, this is not necessary. In the newly created repository you need to add your main repository as a git submodule like so:
+
+```shellscript 
+git submodule add https://github.com/MyOrganization/MyFramework
+```
+
+After that, in the root of your shim repository, you need to create a few symbolic links, for the `Package.swift`, `Sources` and `Tests` :
+
+```shellscript 
+ln -s MyFramework/Package.swift Package.swift
+ln -s MyFramework/Sources Sources
+ln -s MyFramework/Tests Tests
+```
+
+Carthage requires shared `.xcscheme`s, so we first need to generate `.xcodeproj`:
+
+```shellscript
+swift package generate-xcodeproj
+```
+
+Open the `.xcodeproj` in the Xcode, edit the schemes and ensure they are shared. Then `git commit` and `git push` the changes.
+
+## Add Carthage shim to your iOS app
+
+Open `Cartfile` and add the Carthage shim, e.g.:
+
+```swift 
+github "MyOrganization/MyFramework-shim" "master"
+```
+
+After that, run `carthage update`.
+
+## Add the package to your Vapor app
+
+Open `Package.swift` and add next the line under `dependencies`:
+
+```swift 
+let package = Package(
+  name: "MyAppName",
+  dependencies: [
+  .package(url: https://github.com/MyOrganization/MyFramework.git", branch: "master")
+  ]
+)
+```
+
+Don't forget to add `MyFramework` under target dependencies, e.g.:
+
+```swift 
+ targets: [
+    .target(name: "App", dependencies: [
+  "MyFramework",
+]);
+```
+
+## Conclusion 
+
+With a few little tricks, we made our entity objects sharable between iOS and Vapor. However, this strategy could be utilized to share any functionality which does not depend on iOS SDKs.

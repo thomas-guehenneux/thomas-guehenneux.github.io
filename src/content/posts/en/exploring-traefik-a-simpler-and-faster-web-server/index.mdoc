@@ -1,0 +1,252 @@
+---
+date: 2023-05-26
+title: "Exploring Traefik: A simpler and faster web server"
+tags: [backend, Web server]  
+header: src/content/posts/en/exploring-traefik-a-simpler-and-faster-web-server/header.webp
+authors:
+- meng-li
+---
+
+In this article, I will introduce a powerful web server named Traefik, written in the Go language. Compared with Nginx, currently the most popular web proxy server, Traefik stands out for its simplicity and speed.
+
+Here are the official website and source code of Traefik:
+- [Traefik official site](https://traefik.io)
+- [Traefik GitHub repository](https://github.com/traefik/traefik)
+
+To follow and run the demo provided in this article, you should have:
+- Experience using other web servers like Nginx or Apache
+- Basic knowledge of Docker and Docker Compose
+
+As described in the Github repository, Traefik has the following features:
+- Continuous configuration updates (No restarts!)
+- Support for multiple load balancing algorithms
+- Provides HTTPS to your microservices by leveraging Let's Encrypt (wildcard certificates support)
+- Circuit breakers, retry mechanisms
+- A clean, user-friendly web UI
+- Readiness for Websocket, HTTP/2, GRPC
+- Provides metrics (Rest, Prometheus, Datadog, Statsd, InfluxDB)
+- Keeps access logs (JSON, CLF)
+- Fast
+- Exposes a Rest API
+- Packaged as a single binary file and available as an official docker image
+
+I personally recommend Traefik for the following three reasons. I encourage you to consider using it as the proxy server in your next startup project:
+- Easier configuration files
+- Simpler SSL support
+- Faster
+
+Next, I will run a Traefik instance using a Docker container to demonstrate these advantages.
+
+## Simplified Configuration
+
+When compared to Nginx, Traefik's configuration files are simpler to handle. In this section, I will use the following three configuration files to start an instance:
+- `docker-compose.yml`
+- `traefik.yml`
+- `dynamic-traefik.yml`
+
+### Docker
+
+Being written in the Go language, Traefik naturally aligns well with Docker and Kubernetes. In this article, I will use the following Docker Compose file to start a Traefik instance.
+
+```yml
+version: "3"
+
+services:
+  reverse-proxy:
+    image: traefik:v2.5.6
+    command:
+      - --api.insecure=true
+    ports:
+      - 80:80
+      - 443:443
+      - 7000:7000
+    volumes:
+      - /etc/traefik/:/etc/traefik/
+      - /var/log/traefik/:/var/log/traefik/
+      - /etc/ssl/certs/:/etc/ssl/certs/
+      - /etc/ssl/letsencrypt:/letsencrypt/
+    restart: always
+```
+
+The following ports are specified in our `yml` file:
+- `80`: http
+- `443`: https
+- `7000`: Visual web panel for easier Traefik management
+
+The following volumes are added in our `yml` file:
+- `/etc/traefik:/etc/traefik/`: Stores the configuration files
+- `/var/log/traefik/:/var/log/traefik/`: Stores the log files
+- `/etc/ssl/certs/:/etc/ssl/certs/`: Stores the SSL certificate files
+- `/etc/ssl/letsencrypt:/letsencrypt/`: Stores LetsEncrypt-related files
+
+### Main configuration file
+
+The main configuration file, `traefik.yml`, holds the global configurations of Traefik.
+This is similar to the `event`, `server`, and `http` nodes defined in the main configurations of Traefik.
+Traefik supports the standard yml format to define the configurations, which is easier to read and edit.
+
+```yml
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+  metrics:
+    address: ":7000"
+providers:
+  file:
+    directory: /etc/traefik/
+    watch: true
+api:
+  dashboard: true
+log:
+  level: WARN
+```
+
+### Dynamic configuration file
+
+The dynamic configuration file, `dynamic-traefik.yml`, contains site configurations.
+It is similar to the `include` command in Nginx like the following:
+
+```
+include /etc/nginx/vhost/*.conf;
+```
+
+In the `dynamic-traefik.yml` file, the domain `test.fczm.site` is bound to a backend server instance `http://10.0.0.1:8080`.
+While Traefik can serve as a static web server, it's usually deployed as a proxy server.
+
+```yml
+http:
+  routers:
+    router-test-api:
+      entryPoints:
+        - "websecure"
+      rule: Host(`test.fczm.site`)
+      service: test-api
+
+  services:
+    test-api:
+      loadBalancer:
+        servers:
+          - url: "http://172.31.1.57:8080"
+        healthCheck:
+          path: /actuator/health
+          interval: "10s"
+          timeout: "3s"
+```
+
+This demo file is a simple dynamic configuration file, containing two nodes:
+- `routers`: Defines the routers, including the domain, SSL certificate, backend service, etc.
+- `services`: Defines the specific service, in this case, a backend server.
+
+After preparing the Traefik-related configuration file, simply move it into the folder `/etc/traefik/` defined in the Docker Compose file.
+
+I have a simple Spring Boot backend server set up for this demonstration.
+The backend server tested successfully:
+```
+➜  ~ curl http://172.31.4.26:8070/actuator/health
+{"status":"UP"}#
+```
+
+Finally, you can launch it with Docker Compose.
+
+## Easier SSL support
+
+With Traefik, it is easy to use the SSL certificates provided by `LetsEncrypt`, which can be automatically updated.
+To support `LetsEncrypt` SSL certificates, append a `certificatesResolvers` node should be added to the main configuration file `traefik.yml`.
+
+```yml
+certificatesResolvers:
+  testResolver:
+    acme:
+      email: test@fczm.site
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web
+```
+
+Next, insert the resolver into the routers in the `dynamic-traefik.yml` file, as shown below:
+
+```yml
+http:
+  routers:
+    router-test-api:
+      entryPoints:
+        - "websecure"
+      rule: Host(`test.fczm.site`)
+      service: test-api
+      tls:
+        certResolver: testResolver
+```
+
+Upon restarting Traefik and waiting a while, the SSL certificate becomes active.
+Manual SSL certificate management is also supported.
+
+## Improved speed
+
+Traefik performs faster than Nginx.
+For performance testing, I've prepared the following environment:
+
+| Item | Value |
+| --- | --- |
+| Server Provider | AWS |
+| Region | Tokyo |
+| CPU | 1 Core |
+| Memory | 2 GB |
+| Backend | Spring Boot Demo Application |
+| SSL | Required |
+
+I employed the command-line tool `wrk` for the performance tests.
+
+Initially, I set up a Nginx proxy server for the backend instance and executed the following command to test its performance:
+
+```shell
+➜  ~ wrk  -t 10 -c 200 -d 60s -T 30s --latency https://test.fczm.site/actuator/health
+Running 1m test @ https://test.fczm.site
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   147.38ms  117.23ms   1.80s    80.74%
+    Req/Sec   157.30     60.24   380.00     69.43%
+  Latency Distribution
+     50%  119.11ms
+     75%  194.24ms
+     90%  290.68ms
+     99%  523.39ms
+  87393 requests in 1.00m, 30.42MB read
+Requests/sec:   1455.54
+Transfer/sec:    518.85KB
+```
+
+Afterwards, I ran the same script with Traefik:
+
+```shell
+➜  ~ wrk -t 10 -c 200 -d 60s -T 30s --latency https://test.fczm.site/actuator/health
+Running 1m test @ https://test.fczm.site/actuator/health
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   106.62ms   83.21ms   1.41s    87.12%
+    Req/Sec   211.13     58.45   400.00     70.40%
+  Latency Distribution
+     50%   83.21ms
+     75%  133.38ms
+     90%  203.80ms
+     99%  388.29ms
+  123927 requests in 1.00m, 48.81MB read
+Requests/sec:   2061.95
+Transfer/sec:    831.63KB
+```
+
+In this performance test, Nginx sent 87,393 requests within 1 minute, while Traefik sent 123,927 requests during the same period, making it 1.4x faster.
+
+## Conclusion
+
+Traefik is simpler and faster than Nginx.
+Written in Go, it naturally integrates with Docker and Kubernetes.
+If you're struggling with Nginx, consider trying Traefik in your next project.
+
+_Article Photo by [Traefik](https://traefik.io/blog/announcing-traefik-proxy-2-6/)_

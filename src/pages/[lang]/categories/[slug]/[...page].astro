@@ -1,11 +1,11 @@
 ---
-import homeImage from '@/assets/home.webp'
+import homeImage from '@/assets/images/home.webp'
 import { langs } from '@/constants'
 import Layout from '@/layouts/Layout.astro'
 import type { GetStaticPathsOptions } from 'astro'
-import { getImage } from 'astro:assets'
 import { getCollection } from 'astro:content'
 import CategoryNav from '~/components/CategoryNav.astro'
+import Hero from '~/components/Hero.astro'
 import PostCard from '~/components/PostCard.astro'
 import ThePagination from '~/components/ThePagination.astro'
 import type { Locales } from '~/types/i18n'
@@ -23,14 +23,13 @@ export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
       .flatMap((category) => {
         const filteredPosts = allPosts.filter(
           (post) =>
-            post.slug.startsWith(lang) &&
-            post.data.categories?.some((postCategory) => postCategory.slug === category.slug),
+            post.slug.startsWith(lang) && post.data.categories?.some((postCategory) => postCategory.id === category.id),
         )
 
         if (filteredPosts.length === 0) return
 
         return paginate(filteredPosts.slice(1), {
-          params: { lang, slug: category.slug },
+          params: { lang, slug: category.id },
           pageSize: 9,
         })
       })
@@ -45,27 +44,25 @@ const { lang, slug: category } = Astro.params
 
 const availableLocales = allPosts
   .filter((post) => post.data.categories !== null)
-  .filter((post) => post.data.categories?.some((postCategory) => postCategory.slug === category))
+  .filter((post) => post.data.categories?.some((postCategory) => postCategory.id === category))
   .flatMap((post) => post.slug.slice(0, 2)) as Locales[]
-
-const optimizedBackground = await getImage({ src: homeImage, format: 'webp' })
 
 // Get all categories with posts in current locale
 const categories = await getCollection('posts', ({ slug }) => {
   return slug.startsWith(lang)
 }).then(async (posts) => {
   const categorySlugs = posts
-    .map((post) => post.data.categories?.map((category) => category.slug))
+    .map((post) => post.data.categories?.map((category) => category.id))
     .filter(Boolean)
     .flat()
-  return await getCollection('categories', ({ slug }) => {
-    return categorySlugs.includes(slug)
+  return await getCollection('categories', ({ id }) => {
+    return categorySlugs.includes(id)
   })
 })
 
 const firstPost = (
   await getCollection('posts', ({ data, slug }) => {
-    return slug.startsWith(lang) && data.categories?.some((postCategory) => postCategory.slug === category)
+    return slug.startsWith(lang) && data.categories?.some((postCategory) => postCategory.id === category)
   })
 ).sort((a, b) => {
   return new Date(a.data.date) > new Date(b.data.date) ? -1 : 1
@@ -75,9 +72,12 @@ const firstPost = (
 <Layout title="TO_SET" image="" description="TO_SET" {availableLocales} {lang}>
   <div class="relative">
     <div
-      style={`background-image: url(${optimizedBackground.src});`}
-      class="min-h-[500px] w-full bg-cover bg-center after:absolute after:size-full after:bg-black/40"
+      class="flex size-full h-[500px] items-center justify-center after:absolute after:top-0 after:size-full after:bg-black/40"
     >
+      <Hero src={homeImage} alt="" {lang} />
+      <div class="absolute z-10 max-w-7xl px-3 text-center text-white">
+        <h1 class="mb-10 text-3xl md:text-5xl">{category}</h1>
+      </div>
     </div>
   </div>
   <div class="container max-w-7xl">

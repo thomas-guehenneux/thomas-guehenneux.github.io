@@ -1,15 +1,22 @@
 ---
-import GreyLogo from '@/assets/ml-logo-grey.png'
-import YellowLogo from '@/assets/ml-logo-yellow.png'
+import GreyLogo from '@/assets/images/ml-logo-grey.webp'
+import YellowLogo from '@/assets/images/ml-logo-yellow.webp'
 import { LanguageToggle } from '@/components/LanguageToggle'
 import { ModeToggle } from '@/components/ModeToggle'
 import { type Locales } from '@/types/i18n'
 import { Picture } from 'astro:assets'
-import { getRelativeLocaleUrl } from 'astro:i18n'
+// import { getRelativeLocaleUrl } from 'astro:i18n'
 
 interface Props {
   availableLocales: Locales[]
   lang: Locales
+}
+
+const getRelativeLocaleUrl = (lang: string, url: string) => {
+  if (lang === 'en') {
+    return url
+  }
+  return `/${lang}${url}`
 }
 
 const { availableLocales, lang } = Astro.props

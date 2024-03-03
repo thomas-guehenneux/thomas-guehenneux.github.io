@@ -1,8 +1,8 @@
 ---
-import homeImage from '@/assets/home.webp'
+import homeImage from '@/assets/images/home.webp'
 import Layout from '@/layouts/Layout.astro'
-import { getImage } from 'astro:assets'
 import { getCollection } from 'astro:content'
+import Hero from '~/components/Hero.astro'
 import type { Locales } from '~/types/i18n'
 
 export async function getStaticPaths() {
@@ -19,23 +19,16 @@ const { Content } = await page.render()
 const availableLocales = (await getCollection('posts'))
   .filter((post) => post.slug.slice(2) === page.slug.slice(2))
   .map((post) => post.slug.slice(0, 2)) as Locales[]
-
-const optimizedBackground = await getImage({
-  src: page.data.image || homeImage,
-  format: 'webp',
-  quality: 80,
-  width: 1920,
-})
 ---
 
-<Layout title="TO_SET" image={optimizedBackground.src} description="TO_SET" {availableLocales} {lang}>
-  <div
-    style={`background-image: url(${optimizedBackground.src});`}
-    class="h-[500px] w-full bg-cover bg-center text-white"
-  >
-    <div class="flex size-full items-center justify-center bg-black/40">
-      <div class="max-w-[1176px] space-y-5 px-3 text-center">
-        <div class="text-4xl font-normal leading-snug md:text-5xl">{page.data.title}</div>
+<Layout title="TO_SET" image={(page.data.header || homeImage).src} description="TO_SET" {availableLocales} {lang}>
+  <div class="relative">
+    <div
+      class="flex size-full h-[500px] items-center justify-center after:absolute after:top-0 after:size-full after:bg-black/40"
+    >
+      <Hero src={page.data.header || homeImage} alt="" {lang} />
+      <div class="absolute z-10 max-w-7xl px-3 text-center text-white">
+        <h1 class="mb-10 text-3xl md:text-5xl">{page.data.title}</h1>
         <div class="">
           {
             page.data.date.toLocaleDateString(lang, {

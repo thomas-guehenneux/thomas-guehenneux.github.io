@@ -1,0 +1,100 @@
+---
+date: 2020-07-28
+title: Exploratory Testing
+tags: [qa, testing]
+header: src/content/posts/en/exploratory-testing/header.webp
+authors:
+  - xingyi-deng
+categories:
+  - qa
+---
+
+Exploratory testing (ET) is an important testing method in the agile world. As a research tool, it is an important supplement to user story testing and automated regression sets. It does not have many practical test methods, techniques and tools, but it is a test thinking mode that all testers should master. Emphasize the subjective initiative of testers, abandon the complicated test plan and test case design process, and emphasize the timely change of test strategy when encountering problems.
+
+### The particularities of exploratory testing
+
+Script testing: Design test cases first, and then execute testing according to the test cases.
+
+Exploratory testomg：Do not design test cases in advance, and consider whether there is a problem elsewhere while performing the test. If you find a problem, focus on testing this part.
+
+### The advantages and disadvantages of ET
+
+#### The advantages
+
+- The tester spends more time to test some interesting or complicated situations
+- The tester can evaluate the system quickly
+- The test can be flexible
+- More interesting than script testing
+
+#### The disadvantages
+
+- It is hard to be adjusted
+- Unable to do a comprehensive test of the system
+- Rely on the knowledge and technology of the tester
+- Not applicable for a long test
+
+### The main purpose of the ET
+
+- Supplement of coverage
+
+  - As an additional test after the classic script tests, it confirms whether the functionality tested by ET is covered by the script tests
+
+- Early detection of bugs
+
+  - When executed as a smoke test, implement before a lengthy script test to prevent late rework
+
+- Reduce costs of test maintenance
+  - During agile development, the cost of changing script tests is high, according exploration testing can reduce costs
+
+### The steps of ET
+
+#### 1. Preparation
+
+- Establish a test plan
+
+  - 2 ways to implement exploratory testing
+    1. Split screen: each screen decides who is responsible
+    2. Based on the scene: select the favorite scene for testing
+
+- Reserve of product knowledge/bug knowledge
+
+  - Understand the style, understand the product's past bugs
+
+- Make sure you're familiar with common testing scenarios
+
+  1. Knowledge of bug detection methods
+
+  - Input value: maximum and minimum, decimal, maximum number of characters exceeded, greater than maximum, less than minimum, empty text, space, ellipses, null, non-existent time, special character, xss character.
+  - Boundary: space boundary, time boundary.
+  - Status: After initialization, the status of adding a large amount of data, etc.
+
+  2. Special operations
+
+  - Perform operations quickly, upload files in weak network environment, etc.
+
+#### 2. Implementation
+
+- Time required
+
+  - The key point is short-term concentration test
+  - If you need a long time, try to control it within 30 min
+
+- Test log
+  - No detailed log
+  - When a bug is found, record it
+
+#### 3. Report
+
+- Summarize test results and report
+
+  - Report matters
+  - Who is responsible for which picture/which scene
+    - Time required
+    - Bug checklist
+
+- Arrange the detailed reproduction steps of the bug and submit bugs
+
+  - If it cannot be reproduced, report it as risk
+
+- Report other concerns
+  - Problems such as user medical examination improvement

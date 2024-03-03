@@ -1,0 +1,36 @@
+---
+export interface Props {
+  mp4Src: string
+  webmSrc: string
+}
+
+const { mp4Src, webmSrc } = Astro.props
+const videos = import.meta.glob<{ default: string }>('/src/content/posts/**/*.{mp4,webm}')
+
+if (!mp4Src.endsWith('.mp4')) {
+  throw new Error(`Invalid video format: ${mp4Src}`)
+} else if (!webmSrc.endsWith('.webm')) {
+  throw new Error(`Invalid video format: ${webmSrc}`)
+}
+
+const mp4Video = videos[`/${mp4Src}`]().then((video) => video.default)
+const webmVideo = videos[`/${webmSrc}`]().then((video) => video.default)
+
+if (!videos[`/${mp4Src}`]) {
+  throw new Error(`Video not found: "/${mp4Src}"`)
+}
+
+if (!videos[`/${webmSrc}`]) {
+  throw new Error(`Video not found: "/${webmSrc}"`)
+}
+
+// if (!mp4Video || !webmVideo) {
+//   console.log(videos)
+//   throw new Error(`Video not found: ${mp4Src} or ${webmSrc}`)
+// }
+---
+
+<video autoplay loop muted playsinline>
+  <source src={await mp4Video} type="video/mp4" />
+  <source src={await webmVideo} type="video/webm" />
+</video>

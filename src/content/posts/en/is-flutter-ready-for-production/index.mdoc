@@ -1,0 +1,114 @@
+---
+date: 2019-04-16
+title: Is Flutter ready for production?
+tags: [development, blog, flutter, dart, google]
+header: src/content/posts/en/is-flutter-ready-for-production/header.webp
+authors:
+  - vladimir-ostaci
+  - alexander-bondarenco
+categories:
+  - flutter
+---
+
+After hearing about Flutter from different sources and developers with all kinds of background we decided to try to rebuild an existing Android app in Flutter and see the the state of the Mobile framework.
+
+We tried to reproduce as many features as possible from original Android app while learning Dart and researching the best way to architect our Flutter project. After some reading we ended up using the [BloC pattern](https://medium.com/flutterpub/architecting-your-flutter-project-bd04e144a8f1).
+BloC is a a simple pattern for defining the business logic of the app. BloC makes it easier to write Android, iOS and AngularDart apps where almost all business logic is shared. In our case we chose to use [flutter_bloc](https://pub.dartlang.org/packages/flutter_bloc) library which is an implementation of the BloC pattern.
+
+## Development setup
+
+I decided to use Intellij Idea for Flutter development because it is updated more frequently than Android Studio and is more stable. Visual Studio Code is also a very popular code editor which has great support for Flutter.
+Initial setup requires installing Dart and Flutter plugins with related sdks. Dart Plugin provides Dart language support and the static Analyzer which evaluates Dart code, checking for errors and warnings that are specified in the Dart Language Specification (which can be configured).
+
+Flutter plugin provides tools like Flutter Outline, Inspector, Performance.
+
+- Outline tool window shows the dart file structure with all the field, methods and widgets. It provides some quick widget actions as well.
+- Inspector tool window shows the whole widget tree of app current state with the ability to quickly jump to widget source code inside the file and line number it is actually created which is really useful when the app layout gets complex or in case of an issue. Because the layouts in Flutter are built composing different widgets the whole layout tree can get big fast so the Inspector is a great tool to assist in building of UIs.
+- The Inspector also provides some additional tools which can sometimes save time debugging: Select widget mode, Debug paint. _Select widget mode_ connects the widget shown in the emulator with the widget's source code so clicking anywhere in the emulator will show the exact place in code where the widget is built.
+- Flutter performance is usually used when there are problems with frame drops or any other unexpected behavior.
+
+Compared to Kotlin, Dart support is currently not as good and sometimes the IDE just stops working and needs a restart. Also many code quick fixes and auto completion which we are familiar with when working with Kotlin are not supported Dart yet. Also sometimes the IDE code completions and other features broke, when we had an error in some unrelated file.
+
+![Flutter in production](src/content/posts/en/is-flutter-ready-for-production/flutter_tools.webp)
+
+## Talking to the iOS / Android layer
+
+Flutter’s platform-specific API support relies on a [flexible message passing style](https://flutter.dev/docs/development/platform-integration/platform-channels):
+
+1. the Flutter part of the app sends a message to the Native part (iOS/ Android) over a platform channel.
+2. The native part listens on the platform channel, receives the message, performs some platform specific actions (native) and sends back a message to the Flutter part.
+
+This way we can integrate any platform specific services and third-party libraries.
+
+## Adding Google maps support
+
+We found some difficulties integrating the Google Maps map with large groups of markers which should be clustered into single markers. Google Maps can be integrated as a library which would become a simple widget, but the library is still considered "Developers Preview" so we can expect bugs and features missing from original library, and:
+
+> _The API exposed by this plugin is not yet stable, and we expect some breaking changes to land soon._
+
+For example there is no way of quickly enabling the clustering feature because in Android Native it's provided by the Google Maps Android API utility library which is not yet ported to Dart. The library can't be rewritten quickly to Dart either because it contains some platform specific code. We can't build a bridge to the native library because in that case we'd have only an native implentation for Android and not for iOS. Trying to port the library we found out it was more difficult than expected because of some Dart language limitations which required massive refactoring.
+
+## Build toolchain
+
+Flutter build system uses a pubspec.yaml file that’s written in the YAML language. **flutter** tool which is included with the Flutter sdk provides multiple commands like:
+
+- _run_ (Runs your Flutter app on an attached device)
+- _doctor_ shows information and health about the installed tooling
+
+**pub** tool which is included with Dart sdk which provides _deps_ (prints package dependencies) _global_ (work with global packages). This is different from Gradle build system because we can't write scripts directly into the YAML file but only write the app package specification (dependencies, required versions, etc). In case we need to run some scripts we can use the **pub** tool. To make a dart script executable it should be included in a package and listed under the _executables_ tag.
+
+## Getting a build on a device
+
+Android was pretty easy to get running. Debug builds was handled automatically and pushed to a device via adb like you would expect. Signing is configured via Gradle and [the flutter docs](https://flutter.dev/docs/deployment/android) describes a way to hide signing info from git.
+
+iOS required some configuration in Xcode. Debug build just required me to configure my team and development provisioning profile. Signing a distribution build was normal iOS procedure, so no headaches there (besides the normal stuff).
+
+## Dart vs Kotlin
+
+Looking from the code style perspective Kotlin is an elegant language. It's easy to get yourself into trying to improve Kotlin code, make it shorter, more beautiful and readable. Dart, on the other hand, gives an impression of a simple language, which is just enough to get things done. Kotlin has features which are very easy to get used to. While Dart does provide some syntatic sugar in order to make some things easier, it doesn't come close to Kotlin. When switching from Kotlin to Dart it may feel like a step backwards.
+
+Missed features in particular:
+
+- Nullable types/optionals and all the features related to that
+- Data classes
+- Sealed classes
+- Extension methods
+
+Dart has a cool feature though; mixins. Dart allows to add behaviour from one class into another without inheritance. Similar to extension protocols in Swift, but still missing in Kotlin.
+
+## Live code reload - gimmick or for real?
+
+Developing for Android is not as productive because of long build times and the need of restarting the app every time changes are made. For me, this results in an unpleasant workflow:
+
+1. Made as many changes as I can without running the app
+1. Press run
+1. Wait 1-5 minutes for the build to complete
+1. Navigate to the screen I am working on
+1. Test as many things as I can
+1. `goto 1`
+
+A live reload would certainly make the things better. Does it work with Flutter? Almost. Most of times it works and it does save a lot of time. It's possible to make adjustments, reload the screen in 1-2 seconds and see the results immedeatly. Finally, I can spend almost all the time actually developing instead of waiting for the build to complete.
+
+I did encounter a couple of issues with code reload.
+
+At first I was reloading the code with VSCode. I would press `F5` at start, make some changes and after saving the files VSCode would do the reload. It was great, until one day VSCode got updated and the reload on save stopped working. Reload still works in terminal, after running `flutter run` pressing `r` will hot reload the app and pressing `R` will do a hot restart. I am sure there is a way to fix realoding in VSCode, but while working on an app, fixing the tools is the last thing I want to do.
+
+Another issue with reload are bugs which don't make any sense. Sometimes after a number of reloads, modifications don't get applied quite right and this results in weird behaviour which dissappears after restarting the app completly. This makes debugging the app worse, because when encountering a weird bug there is always a thought "Did I mess something up or is it that weird reload thing?".
+
+Another thing worth mentioning is that app needs to be restarted after adding assets or packages. It's not very often you need to add an asset or package to the project, so it's not a big deal. Overall, while live reload has some minor problems, it works quite well and it does save a lot of time.
+
+## Building UI
+
+The UI is built by composing different widgets so the UI tree can get pretty complex. Usually extracting parts of UI in separate widgets (when widgets get too nested) and files is a good idea to simplify the development and get a better understanding of the UI.
+
+Building UI is faster with flutter because custom widgets are much easier to build and hot reload display the preview without loosing state. Compared to Android's _Layout preview_ tool the Device UI preview is dynamic and displays the actual data which simplifies testing and guarantees pixel perfect elements.
+
+A small bonus to dev mode is in case of overdrawing widgets, Flutter tools will show a warning with the value of pixels which are being overdrawn.
+
+## Final words
+
+Re-implementing an existing app proved to have some difficulties. Google Maps integration proved to have some pain points and I ended up with keyboard issues due to a [navigation stack bug](https://github.com/flutter/flutter/issues/17098). This could probably be solved by some refactoring, but still acted as a showstopper due to the limited time I had.
+
+Since Flutter isn't translating to any UIKit or Android widgets, platform differences are minimal. Getting the first build up and running on iOS and comparing it to Android was a surprising positive experience. There wasn't any breaking quirks or differences!
+
+Overall, though, I still think Flutter feels like a 0.5 version. The development flow feels really fluent and getting screens implemented is fast, but the ecosystem still feels a bit immature. If your project scope doesn't include many platform plugins, you could probably get away with doing it in Flutter, but you start getting the beta feel pretty fast once you dive in.

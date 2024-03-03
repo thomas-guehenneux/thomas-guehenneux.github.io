@@ -1,0 +1,25 @@
+---
+import { YouTube } from 'astro-embed'
+
+export interface Props {
+  videoId: string
+}
+
+const { videoId } = Astro.props
+
+const caption = await Astro.slots.render('default')
+const isCaptionPresent = caption !== ''
+---
+
+{
+  isCaptionPresent ? (
+    <figure>
+      <YouTube id={videoId} />
+      <figcaption>
+        <Fragment set:html={caption} />
+      </figcaption>
+    </figure>
+  ) : (
+    <YouTube id={videoId} />
+  )
+}

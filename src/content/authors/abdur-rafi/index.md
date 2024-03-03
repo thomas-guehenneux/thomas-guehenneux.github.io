@@ -1,9 +1,0 @@
----
-name: Md Abdur Rafi Ibne Mahmood
-occupation: Senior Software Engineer
-about: Backend Developer | Tech Enthusiast | Table tennis Player
-twitter: MDAbdurRafi
-github: AbdurRafi
-image: './abdur-rafi.webp'
-slack: U9PD3NL6P
----

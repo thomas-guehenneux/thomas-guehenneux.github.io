@@ -1,0 +1,83 @@
+---
+date: 2022-07-22
+title: Code Coverage with SonarQube and Bitrise for Swift
+tags: [code coverage, sonarqube, bitrise]
+header: src/content/posts/en/code-coverage-with-sonarqube-and-bitrise-for-swift/header.webp
+authors:
+  - marius-constantinescu
+categories:
+  - ios
+---
+
+At [Monstarlab](https://monstar-lab.com/global), we are using [SonarQube](https://sonarqube.com/) to gather metrics about the quality of our code. One of the metrics we were interested in is code coverage. However, just running `sonar-scanner` on the project will not upload the coverage data to our instance of SonarQube. Here's how we got code coverage reports on SonarQube with Bitrise, our favourite CI/CD service.
+
+## Getting started
+
+Our apps are already set up on Bitrise, and we had already set up SonarQube to run on every pull request. What we want now is to also gather code coverage data and send them to SonarQube.
+
+First of all, we need to gather the code coverage data from Xcode. We do that by editing the Test scheme action in Xcode:
+
+- Open your project in Xcode
+- Go to Product > Scheme > Edit Scheme (or CMD + <, or option + click on the target, next to the simulator in the top bar)
+- Select the Test scheme action
+- In the Options tab, make sure the checkmark next to Code Coverage is selected
+  ![](src/content/posts/en/code-coverage-with-sonarqube-and-bitrise-for-swift/scheme.webp)
+  Make sure this change is committed to git when you start testing your updated Bitrise workflow.
+
+## Running the tests and getting the coverage data
+
+Let's have Bitrise run the tests so it can then gather the coverage data. We are editing our pull-request workflow on Bitrise and adding the step "Xcode Test for iOS". We won't change any of the default parameters of this step. This step will run the tests and also output a variable, `$BITRISE_XCRESULT_PATH`, which contains the path to the `xcresult` file.
+![](src/content/posts/en/code-coverage-with-sonarqube-and-bitrise-for-swift/xcode-test-step.webp)
+
+SonarQube expects the coverage data in a specific XML format. So after Xcode runs the tests and generates the `xcresult`, we need to get from there the coverage data and transform it into the format expected by SonarQube. We will be using the [script](https://github.com/SonarSource/sonar-scanning-examples/blob/master/swift-coverage/swift-coverage-example/xccov-to-sonarqube-generic.sh) from the [SonarQube Code Coverage examples](https://github.com/SonarSource/sonar-scanning-examples/tree/master/swift-coverage) to do that. So we need to tell Bitrise to fetch the script and run it.
+
+In our pull request workflow in Bitrise, we're adding the "File Download" step. We tell it to download the script from the URL `https://raw.githubusercontent.com/SonarSource/sonar-scanning-examples/master/swift-coverage/swift-coverage-example/xccov-to-sonarqube-generic.sh` to the destination path `xccov-to-sonarqube-generic.sh` and we set the file permissions to 755 (to make sure it's executable).
+![](src/content/posts/en/code-coverage-with-sonarqube-and-bitrise-for-swift/file-downloader-step.webp)
+![](src/content/posts/en/code-coverage-with-sonarqube-and-bitrise-for-swift/file-downloader-step-options.webp)
+
+The script has `jq` as a dependency, which is a tool for processing JSON. We can install this via Homebrew, so we add another step for this.
+![](src/content/posts/en/code-coverage-with-sonarqube-and-bitrise-for-swift/brew-install-step.webp)
+We specify `jq` as the formula name and leave the rest of the parameters unchanged.
+
+Now we have everything we need to run the script we downloaded and extract the coverage data from the `xcresult` into the format that SonarQube expects. So we add the Run Script step
+![](src/content/posts/en/code-coverage-with-sonarqube-and-bitrise-for-swift/run-script-step.webp)
+And we add the following script content:
+
+```shellscript
+#!/usr/bin/env bash
+# fail if any commands fails
+set -e
+# make pipelines' return status equal the last command to exit with a non-zero status, or zero if all commands exit successfully
+set -o pipefail
+# debug log
+set -x
+
+echo "Converting code coverage log to Sonar format"
+./xccov-to-sonarqube-generic.sh $BITRISE_XCRESULT_PATH > cov.xml
+```
+
+We're running the script on the `xcresult` file and exporting the coverage data to a file called `cov.xml`.
+
+## Uploading the results to SonarQube
+
+With the coverage data in the `cov.xml` file, now we can run `sonar-scanner`. We already had this setup on Bitrise, using the SonarQube Scanner step made by [DroidsOnRoids](https://github.com/DroidsOnRoids/bitrise-step-sonarqube-scanner), but we didn't have the coverage data. We do now, so we just have to add this line `sonar.coverageReportPaths=cov.xml` in the step's options under "Scanner parameters in Java properties format".
+
+![](src/content/posts/en/code-coverage-with-sonarqube-and-bitrise-for-swift/sonarqube-scanner-step.webp)
+
+Overall, this is what our pull request workflow looks like in Bitrise:
+
+![](src/content/posts/en/code-coverage-with-sonarqube-and-bitrise-for-swift/workflow.webp)
+
+There can be variations based on your specific project (dependency manager, etc), so use this as inspiration and not as an absolute source of truth.
+
+We can now open a new pull request to test this workflow in Bitrise. We're not covering setting up the workflow trigger in this article, you can check out [Bitrise's official guide for that](https://devcenter.bitrise.io/en/builds/starting-builds/triggering-builds-automatically.html#triggering-builds-with-pull-requests).
+
+After the Bitrise workflow has successfully been run, we can now see the results in the SonarQube dashboard, showing some data for code coverage.
+
+![](src/content/posts/en/code-coverage-with-sonarqube-and-bitrise-for-swift/sonar-report.webp)
+
+## Wrap-up
+
+Getting the code coverage data into SonarQube is not a complicated task, but it requires a bit more work than we initially expected. We found this way of doing it, which relies on the script from the SonarSource swift examples. This is a solution that works for now, but it is possible that in the future the script will break and not work with new versions of Xcode. We will be keeping an eye on this and updating our workflow if necessary.
+
+_Article Photo by [Mikail McVerry](https://unsplash.com/@mcverry)_

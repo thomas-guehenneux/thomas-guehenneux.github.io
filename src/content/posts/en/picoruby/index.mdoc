@@ -1,0 +1,119 @@
+---
+date: 2021-04-13
+title: PicoRuby
+tags: [language, microcontroller, keyboard, IoT]
+header: src/content/posts/en/picoruby/header.webp
+authors:
+  - hitoshi-hasumi
+---
+
+[PicoRuby (f/k/a mmruby)](https://github.com/picoruby/picoruby) is an alternative Ruby implementation dedicated to one-chip microcontrollers. The binary fits into less than 256 KB ROM and runs on less than 64 KB RAM.
+This development was supported by [the Ruby Association (RA) Grant program 2020](https://www.ruby.or.jp/en/news/20201022) and mentored by **Matz** himself!
+_Monstarlab is one of the developers of the Ruby programming ecosystem._
+
+C/C++ is still the first language for microcontrollers though, script languages like Lua and MicroPython are nicely developing in embedded systems nowadays.
+I, an enthusiastic Ruby fan, dreamed that Ruby would be a real choice to make hardware.
+The time has come.
+
+## Ruby in small footprint
+
+Implementing a Ruby interpreter for microcontrollers was regarded as difficult because of its free and descriptive grammatical rules.
+An upside of Ruby is also a downside in terms of a small footprint.
+The unnecessity of parenthesizing arguments in method call may increase the size of the syntax parser table.
+The dynamic type decision system will complicate the runtime environment.
+
+Despite these valid observations, some people including me are trying to achieve it.
+I am working at the Shimane development branch at Monstarlab Japan.
+
+## Developing Ruby as my daily work
+
+After my proposal was adopted by the RA Grant, I talked to Daisuke, our CTO in Japan, about whether we can work on the project as an official work of our company.
+I became a "part-time committer" of the OSS at that moment since he promptly agreed to my suggestion.
+
+Matz, the founder of Ruby, has been responsible for my mentorship during the project as mentioned above.
+I could (even now I still can) text him to ask how Ruby works, why did he design Ruby like that, and what are his thoughts in reducing the memory consumption.
+Thanks to Matz's big support, I successfully submitted [the final report](https://github.com/picoruby/picoruby/wiki/Final-report-for-the-Grant-Program-2020-of-Ruby-Association).
+
+## A keyboard firmware in Ruby
+
+Now you can freely fork and build PicoRuby, though it is probably hard to use it properly without any idea.
+My next goal is to make a "killer product" to indicate that PicoRuby deserves to be your language of choice.
+
+I definitely know you are a "keyboard lover" if you are a software programmer, right?
+I have good news for you that I recently released "[PRK Firmware](https://github.com/picoruby/prk_firmware)" which is a keyboard firmware platform and runs on Raspberry Pi Pico (RP2040 chip).
+`keymap.rb` which configures keymap and allows you to modify keyboard behavior can be written as follows:
+
+### Initialize a Keyboard object and configure GPIO pins
+
+```ruby
+kbd = Keyboard.new
+
+kbd.init_pins(
+  [ 2, 3, 4, 5 ],                                 # row0, row1,... respectively
+  [ 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 ]  # col0, col1,... respectively
+)
+```
+
+Supposing you are building a 4x12 matrix, a so-called "40%" keyboard.
+
+### Add layers as you like
+
+```ruby
+# (I skipped the right-side of the keymap)
+kbd.add_layer :default, [
+  %i(KC_ESC  KC_Q        KC_W        KC_E      KC_R     KC_T ...),
+  %i(KC_TAB  KC_A        KC_S        KC_D      KC_F     KC_G ...),
+  %i(KC_LSFT KC_Z        KC_X        KC_C      KC_V     KC_B ...),
+  %i(KC_NO   KC_NO       KC_LGUI     KC_LALT   KC_LCTL  RAISE_ENTER ...)
+]
+kbd.add_layer :raise, [
+  %i(KC_ESC  KC_1        KC_2        KC_3      KC_4     KC_5 ...),
+  %i(KC_TAB  KC_F1       KC_F2       KC_F3     KC_F4    KC_F5 ...),
+  %i(KC_LSFT KC_LBRACKET KC_RBRACKET KC_SCOLON KC_MINUS KC_PLUS ...),
+  %i(KC_NO   KC_NO       KC_LGUI     KC_LALT   KC_LCTL  RAISE_ENTER ...)
+]
+```
+
+You don't need to insert `,` (comma) between `KC_x` and `KC_x` while QMK firmware requires you to do.
+
+### Define "mode" keys
+
+```ruby
+#                   Your mode       Keycode or  Keycode or Proc                     Release time      Re-push time
+#                   key name        Proc when   while you keep press                threshold(ms)     threshold(ms)
+#                                   you  click                                      to consider as    to consider as
+#                                                                                   `click the key`   `hold the key`
+kbd.define_mode_key :RAISE_ENTER, [ :KC_ENTER,  Proc.new { kbd.hold_layer :raise }, 200,              150 ]
+kbd.define_mode_key :LOWER_SPACE, [ :KC_SPACE,  Proc.new { kbd.lock_layer :lower }, 200,              150 ]
+```
+
+You will easily see `Proc` object works particularly.
+
+### Want to input ":" without Shift and ";" with Shift?
+
+Sure!
+
+```ruby
+kbd.before_report do
+  kbd.invert_sft if kbd.keys_include?(:KC_SCOLON)
+end
+```
+
+## Conclusion
+
+What do you say?
+I hope you find `keymap.rb` is better than other firmware platforms :)
+
+PRK Firmware will be frequently updated as it is still public beta.
+Please check my [Twitter](https://twitter.com/hasumikin) and [GitHub](https://github.com/picoruby) if you want to be notified.
+
+## Resources
+
+- [PicoRuby](https://github.com/picoruby/picoruby)
+- [Final report for Ruby Association](https://github.com/picoruby/picoruby/wiki/Final-report-for-the-Grant-Program-2020-of-Ruby-Association)
+- [PRK Firmware](https://github.com/picoruby/prk_firmware)
+- [Yukihiro Matsumoto a.k.a Matz (the founder of Ruby)](https://en.wikipedia.org/wiki/Yukihiro_Matsumoto)
+
+![Developing PRK Firmware on Raspberry Pi Pico](src/content/posts/en/picoruby/header.webp)
+
+_Article Photo by [hasumikin](https://twitter.com/hasumikin)_

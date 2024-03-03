@@ -1,8 +1,0 @@
----
-name: Oliver Wang Hansen
-occupation: Technical Director
-twitter: gnawrevilo
-github: OliverWangHansen
-about: I love technology and people, and create tools that join both of them on a daily basis.
-image: './oliver-hansen.webp'
----

@@ -1,8 +1,0 @@
----
-name: Nairah Thaha
-occupation: Immersive Technology Engineer
-about: Unity Developer and Immersive Tech Enthusiast
-github: nairahML
-image: './nairah-thaha.webp'
-slack: U04LE0BLSHX
----

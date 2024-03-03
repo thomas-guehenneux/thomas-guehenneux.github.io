@@ -1,8 +1,0 @@
----
-name: Rui Machado
-occupation: Head of Data Analytics and Engineering
-about: an experienced full stack data professional that likes to use data to solve all kind of problems and challenges
-github: rui-machado-ml
-image: './rui-machado.webp'
-slack: rui.machado@monstar-lab.com
----

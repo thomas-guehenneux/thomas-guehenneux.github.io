@@ -1,7 +1,0 @@
----
-name: Andrei Hogea
-occupation: iOS Developer
-about: iOS developer based in Copenhagen, Denmark. Always curious
-github: kjoneandrei
-image: './andrei-hogea.webp'
----
