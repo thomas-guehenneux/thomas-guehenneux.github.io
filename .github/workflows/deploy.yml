@@ -34,7 +34,7 @@ jobs:
         with:
           path: |
             dist/_astro
-          key: ${{ runner.os }}-astro-build-dist/_astro-${{ hashFiles('**/bun.lockb') }}
+          key: ${{ runner.os }}-astro-build-dist/_astro-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-astro-build-dist/_astro-
 
