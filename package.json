@@ -9,8 +9,8 @@
     "@astrojs/solid-js": "4.0.1",
     "@astrojs/tailwind": "5.1.0",
     "@keystatic/astro": "5.0.0",
-    "@keystatic/core": "^0.5.0",
-    "@kobalte/core": "0.12.2",
+    "@keystatic/core": "^0.5.1",
+    "@kobalte/core": "0.12.3",
     "@types/html-to-text": "9.0.4",
     "@typescript-eslint/parser": "7.1.0",
     "astro": "4.4.9",
@@ -31,7 +31,7 @@
     "tailwind-merge": "2.2.1",
     "tailwindcss": "3.4.1",
     "tailwindcss-animate": "1.0.7",
-    "typescript": "5.3.3"
+    "typescript": "5.4.2"
   },
   "devDependencies": {
     "@tailwindcss/typography": "0.5.10",
@@ -43,7 +43,7 @@
     "prettier": "3.2.5",
     "prettier-config-standard": "7.0.0",
     "prettier-plugin-astro": "0.13.0",
-    "prettier-plugin-tailwindcss": "0.5.11"
+    "prettier-plugin-tailwindcss": "0.5.12"
   },
   "scripts": {
     "dev": "astro dev",

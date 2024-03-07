@@ -36,6 +36,7 @@ module.exports = {
       parser: '@typescript-eslint/parser',
       plugins: ['solid'],
       extends: ['plugin:solid/typescript'],
+      excludedFiles: ['keystatic.config.tsx'],
     },
     {
       files: ['*.d.ts'],

@@ -169,8 +169,9 @@ const postCollection = (collectionPath: Path, directory: string, publicPath: str
     path: collectionPath,
     format: { contentField: 'content' },
     entryLayout: 'content',
+    columns: ['title', 'date'],
     schema: {
-      title: fields.slug({ name: { label: 'Title' } }),
+      title: fields.slug({ name: { label: 'Title', validation: { isRequired: true } } }),
       header: fields.image({
         label: 'Image',
         directory,
@@ -242,6 +243,7 @@ export default config({
       slugField: 'name',
       path: 'src/content/authors/*/',
       format: { contentField: 'content' },
+      columns: ['name'],
       schema: {
         name: fields.slug({ name: { label: 'Name', validation: { isRequired: true } } }),
         occupation: fields.text({ label: 'Occupation' }),
@@ -249,19 +251,16 @@ export default config({
         twitter: fields.text({ label: 'Twitter' }),
         github: fields.text({ label: 'Github' }),
         slack: fields.text({ label: 'Slack' }),
+        instagram: fields.text({ label: 'Instagram' }),
+        stackoverflow: fields.text({ label: 'Stack Overflow' }),
         image: fields.image({ label: 'Image', directory: 'src/content/authors', publicPath: 'src/content/authors/' }),
-        content: fields.document({
-          label: 'Content',
-          formatting: true,
-          dividers: true,
-          links: true,
-          images: true,
-        }),
+        content: fields.emptyDocument(),
       },
     }),
     categories: collection({
       label: 'Categories',
       slugField: 'name',
+      columns: ['name'],
       path: 'src/content/categories/*',
       schema: {
         name: fields.slug({ name: { label: 'Name' } }),
