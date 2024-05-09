@@ -31,14 +31,11 @@ export default defineConfig({
     markdoc(),
     process.env.NODE_ENV === 'production' ? null : keystatic(),
   ],
-  // i18n: {
-  //   defaultLocale: 'en',
-  //   locales: ['en', 'ja'],
-  //   routing: {
-  //     prefixDefaultLocale: true,
-  //     redirectToDefaultLocale: true,
-  //   },
-  // },
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'ja'],
+    routing: 'manual',
+  },
   output: process.env.NODE_ENV === 'production' ? 'static' : 'hybrid',
   vite: {
     ssr: {
