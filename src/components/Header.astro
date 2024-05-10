@@ -13,6 +13,9 @@ interface Props {
 }
 
 const getRelativeLocaleUrl = (lang: string, url: string) => {
+  if (url === '/') {
+    return `/${lang}/`
+  }
   if (lang === 'en') {
     return url
   }
